@@ -3,6 +3,7 @@ import { google } from "googleapis";
 import { fetchSecretsList } from "../../secrets-manager/secrets-manager.mjs";
 import isEmpty from "lodash/isEmpty.js";
 import mongoose from "mongoose";
+import { getMultiplier } from "../../helpers/helper.mjs";
 
 const { Schema, model } = mongoose;
 
@@ -194,19 +195,6 @@ const modifyContributions = async (contributions, blockchain) => {
   }
 
   return modifiedContributions;
-};
-
-const getMultiplier = (timestamp) => {
-  const timestampFor33 = 1717961485;
-  const timestampFor22 = 1717961485;
-
-  if (timestamp < timestampFor33) {
-    return 33;
-  } else if (timestamp < timestampFor22) {
-    return 22;
-  } else {
-    return 11;
-  }
 };
 
 const fetchContributions = async (blockchain) => {

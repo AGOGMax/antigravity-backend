@@ -1,12 +1,4 @@
-import mongoose from "mongoose";
-import { fetchSecretsList } from "../../secrets-manager/secrets-manager.mjs";
-
-const { Schema, model } = mongoose;
-const secrets = await fetchSecretsList();
-await mongoose.connect(secrets?.MONGODB_CONNECTION_STRING);
-
-const pointsSchema = new Schema({}, { strict: false });
-const pointsModel = model("points", pointsSchema);
+import { pointsModel } from "../models/models.mjs";
 
 const badgeMapping = [
   { name: "Informant", start: 0, end: 3332 },

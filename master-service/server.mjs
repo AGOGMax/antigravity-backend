@@ -1,8 +1,11 @@
 import express from "express";
+import mongoose from "mongoose";
 import { fetchLeaderboard } from "./utils/leaderboard.mjs";
 import { fetchTokenPrice } from "./utils/price.mjs";
 import { enrollUserToNewsletter } from "./utils/newsletter.mjs";
 import { checkOrCreateUser } from "./utils/user.mjs";
+import { verifyMining } from "./utils/mining.mjs";
+import { fetchSecretsList } from "../secrets-manager/secrets-manager.mjs";
 
 const app = express();
 app.use(express.json());
@@ -57,6 +60,20 @@ app.post("/api/user", async (req, res) => {
     res.status(500).send("Internal Server Error");
   }
 });
+
+app.post("/api/verify-mining", async (req, res) => {
+  try {
+    const { walletAddress } = req.body;
+    const miningStatus = await verifyMining(walletAddress);
+    res.json(miningStatus);
+  } catch (error) {
+    console.error(error);
+    res.status(500).send("Internal Server Error");
+  }
+});
+
+const secrets = await fetchSecretsList();
+await mongoose.connect(secrets?.MONGODB_CONNECTION_STRING);
 
 const PORT = 3000;
 app.listen(PORT, () => {
