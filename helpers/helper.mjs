@@ -1,6 +1,59 @@
-const getMultiplier = (timestamp) => {
-  const timestampFor33 = 1717961485;
-  const timestampFor22 = 1717961485;
+import axios from "axios";
+import { fetchSecretsList } from "../secrets-manager/secrets-manager.mjs";
+
+const secrets = await fetchSecretsList();
+
+const badgeMapping = [
+  { name: "Informant", start: 0, end: 3332 },
+  { name: "Jr. Operator", start: 3333, end: 6665 },
+  { name: "Sr. Operator", start: 6666, end: 9998 },
+  { name: "Lead Operator", start: 9999, end: 33332 },
+  { name: "Jr. Technician", start: 33333, end: 66665 },
+  { name: "Sr. Technician", start: 66666, end: 99998 },
+  { name: "Lead Technician", start: 99999, end: 333332 },
+  { name: "Jr. Agent", start: 333333, end: 666665 },
+  { name: "Sr. Agent", start: 666666, end: 999998 },
+  { name: "Special Agent", start: 999999, end: 3333332 },
+  { name: "2nd Navigator", start: 3333333, end: 6666665 },
+  { name: "1st Navigator", start: 6666666, end: 9999998 },
+  { name: "Chief Navigator", start: 9999999, end: 33333332 },
+  { name: "2nd Officer", start: 33333333, end: 66666665 },
+  { name: "1st Officer", start: 66666666, end: 99999998 },
+  { name: "Chief Officer", start: 99999999, end: 332210999 },
+  { name: "Grand Admiral", start: 332211000, end: Infinity },
+];
+
+const getBadge = (points) => {
+  for (const badge of badgeMapping) {
+    if (points >= badge.start && points <= badge.end) {
+      return badge.name;
+    }
+  }
+  return "No Badge";
+};
+
+const getMultiplier = async (timestamp, era) => {
+  const timestampResponse = await axios.get(secrets?.TIMESTAMP_API_LINK);
+  const timestamps = timestampResponse.data?.result;
+
+  let timestampFor33;
+  let timestampFor22;
+
+  if (era === 1) {
+    timestampFor33 = Math.floor(
+      new Date(timestamps.era_1_phase_1_start).getTime() / 1000
+    );
+    timestampFor22 = Math.floor(
+      new Date(timestamps.era_1_phase_2_start).getTime() / 1000
+    );
+  } else if (era === 2) {
+    timestampFor33 = Math.floor(
+      new Date(timestamps.era_2_phase_1_start).getTime() / 1000
+    );
+    timestampFor22 = Math.floor(
+      new Date(timestamps.era_2_phase_2_start).getTime() / 1000
+    );
+  }
 
   if (timestamp < timestampFor33) {
     return 33;
@@ -34,7 +87,7 @@ const generateEra2Points = (contributions, era1Contributions) => {
   let pointsList = [];
   let rewardMultiplier = 1;
   contributions.forEach((contribution) => {
-    const multiplier = getMultiplier(contribution.timestamp);
+    const multiplier = getMultiplier(contribution.timestamp, 2);
     if (era1ContributionUsers.has(contribution.walletAddress)) {
       rewardMultiplier = secrets?.ERA_2_REWARD_MULTIPLIER || 2;
     }
@@ -51,4 +104,4 @@ const generateEra2Points = (contributions, era1Contributions) => {
   return pointsList;
 };
 
-export { modifyEra2Contributions, generateEra2Points, getMultiplier };
+export { modifyEra2Contributions, generateEra2Points, getMultiplier, getBadge };

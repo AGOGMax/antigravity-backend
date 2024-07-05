@@ -1,18 +1,6 @@
 import { pointsModel } from "../models/models.mjs";
-
-const badgeMapping = [
-  { name: "Informant", start: 0, end: 3332 },
-  { name: "Jr. Operator", start: 3333, end: 6665 },
-  { name: "Sr. Operator", start: 6666, end: 9998 },
-  { name: "Lead Operator", start: 9999, end: 33332 },
-  { name: "Jr. Technician", start: 33333, end: 66665 },
-  { name: "Sr. Technician", start: 66666, end: 99998 },
-  { name: "Lead Technician", start: 99999, end: 333332 },
-  { name: "Jr. Agent", start: 333333, end: 666665 },
-  { name: "Sr. Agent", start: 666666, end: 999998 },
-  { name: "Special Agent", start: 999999, end: 3333332 },
-  { name: "2nd Navigator", start: 3333333, end: 33333333 },
-];
+import { getBadge } from "../../helpers/helper.mjs";
+import isEmpty from "lodash/isEmpty.js";
 
 const fetchAllTimeLeaderboard = async (currentUserWalletAddress) => {
   const topUsers = await pointsModel.aggregate([
@@ -36,7 +24,7 @@ const fetchAllTimeLeaderboard = async (currentUserWalletAddress) => {
       },
     },
     {
-      $limit: 5,
+      $limit: 10,
     },
     {
       $project: {
@@ -54,8 +42,8 @@ const fetchAllTimeLeaderboard = async (currentUserWalletAddress) => {
       currentUserWalletAddress.toLowerCase()
   );
 
-  if (isCurrentUserInTopUsers) {
-    return [...topUsers, null];
+  if (isCurrentUserInTopUsers || isEmpty(currentUserWalletAddress)) {
+    return [...topUsers];
   }
 
   const currentUserWithRank = await pointsModel.aggregate([
@@ -94,7 +82,7 @@ const fetchAllTimeLeaderboard = async (currentUserWalletAddress) => {
   const currentUserRank = currentUserWithRank[0]?.rank;
 
   if (!currentUserRank) {
-    return [...topUsers, null];
+    return [...topUsers];
   }
 
   const neighbourUsersWithRanks = await pointsModel.aggregate([
@@ -134,7 +122,7 @@ const fetchAllTimeLeaderboard = async (currentUserWalletAddress) => {
     },
   ]);
 
-  return [...topUsers, null, ...neighbourUsersWithRanks];
+  return [...topUsers.slice(0, 5), null, ...neighbourUsersWithRanks];
 };
 
 const fetchEraWiseLeaderboard = async (era, currentUserWalletAddress) => {
@@ -162,7 +150,7 @@ const fetchEraWiseLeaderboard = async (era, currentUserWalletAddress) => {
       },
     },
     {
-      $limit: 5,
+      $limit: 10,
     },
     {
       $project: {
@@ -180,8 +168,8 @@ const fetchEraWiseLeaderboard = async (era, currentUserWalletAddress) => {
       currentUserWalletAddress.toLowerCase()
   );
 
-  if (isCurrentUserInTopUsers) {
-    return [...topUsers, null];
+  if (isCurrentUserInTopUsers || isEmpty(currentUserWalletAddress)) {
+    return [...topUsers];
   }
 
   const currentUserWithRank = await pointsModel.aggregate([
@@ -223,7 +211,7 @@ const fetchEraWiseLeaderboard = async (era, currentUserWalletAddress) => {
   const currentUserRank = currentUserWithRank[0]?.rank;
 
   if (!currentUserRank) {
-    return [...topUsers, null];
+    return [...topUsers];
   }
 
   const neighbourUsersWithRanks = await pointsModel.aggregate([
@@ -266,16 +254,7 @@ const fetchEraWiseLeaderboard = async (era, currentUserWalletAddress) => {
     },
   ]);
 
-  return [...topUsers, null, ...neighbourUsersWithRanks];
-};
-
-const getBadge = (points) => {
-  for (const badge of badgeMapping) {
-    if (points >= badge.start && points <= badge.end) {
-      return badge.name;
-    }
-  }
-  return "No Badge";
+  return [...topUsers.slice(0, 5), null, ...neighbourUsersWithRanks];
 };
 
 const transformLeaderboard = (leaderboard, currentUserWalletAddress) => {

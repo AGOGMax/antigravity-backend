@@ -7,9 +7,9 @@ export const fetchTokenPrice = async (
   tokenAddress,
   poolAddress,
   network,
-  timestamp,
   isNativeToken
 ) => {
+  const timestamp = Math.floor(Date.now() / 1000);
   let url = `${secrets?.COINGECKO_API_URL}/api/v3/onchain/networks/${network}/pools/${poolAddress}/ohlcv/minute?before_timestamp=${timestamp}&token=${tokenAddress}`;
   if (isNativeToken) {
     url = `${secrets?.COINGECKO_API_URL}/api/v3/onchain/networks/${network}/pools/${poolAddress}/ohlcv/minute?before_timestamp=${timestamp}&token=quote`;

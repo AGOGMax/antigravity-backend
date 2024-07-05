@@ -6,9 +6,9 @@ const generateTransactionsHTML = (transactions) => {
     transactionsHTML =
       transactionsHTML +
       `<div class="transaction">
-         <p class="token_name">${transaction?.tokenName}</p>
-         <p class="token_amount">${transaction?.formattedAmount} ${transaction?.tokenSymbol}</p>
-         <p class="token_conversion">$${transaction?.conversion}</p>
+         <p class="token_name">${transaction?.contributionTokenName}</p>
+         <p class="token_amount">${transaction?.totalContributionTokenAmount} ${transaction?.contributionTokenSymbol}</p>
+         <p class="token_conversion">$${transaction?.approxContributionValueInUSD}</p>
          </div>`;
   });
   return transactionsHTML;

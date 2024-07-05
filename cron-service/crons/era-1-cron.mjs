@@ -15,12 +15,12 @@ const sleep = (ms) => {
 };
 
 const urlKeyMapping = {
-  ethereum: "ETHEREUM_INDEXER_URL_ERA_1",
+  base: "BASE_INDEXER_URL_ERA_1",
   pulsechain: "PULSECHAIN_INDEXER_URL_ERA_1",
 };
 
 const tokenContractAddressMapping = {
-  ethereum: "ETHEREUM_TOKEN_CONTRACT_ADDRESS_ERA_1",
+  base: "BASE_TOKEN_CONTRACT_ADDRESS_ERA_1",
   pulsechain: "PULSECHAIN_TOKEN_CONTRACT_ADDRESS_ERA_1",
 };
 
@@ -35,7 +35,31 @@ const fetchPulsechainTokenTransfers = async () => {
     return {
       walletAddress: transfer?.from?.hash,
       transactionHash: transfer?.tx_hash,
-      timestamp: new Date(transfer?.timestamp).getTime() / 1000,
+      timestamp: Math.floor(new Date(transfer?.timestamp).getTime() / 1000),
+      contributionTokenName: transfer?.token?.name,
+      contributionTokenSymbol: transfer?.token?.symbol,
+      contributionTokenAddress: transfer?.token?.address?.toLowerCase(),
+      totalContributionTokenAmount:
+        parseFloat(transfer?.total?.value) /
+        Math.pow(10, parseFloat(transfer?.total?.decimals)),
+    };
+  });
+
+  return modifiedResponse;
+};
+
+const fetchBaseTokenTransfers = async () => {
+  const response = await axios.get(
+    `${secrets[urlKeyMapping?.base]}/api/v2/addresses/${
+      secrets[tokenContractAddressMapping?.base]
+    }/token-transfers?filter=to`
+  );
+
+  const modifiedResponse = response?.data?.items?.map((transfer) => {
+    return {
+      walletAddress: transfer?.from?.hash,
+      transactionHash: transfer?.tx_hash,
+      timestamp: Math.floor(new Date(transfer?.timestamp).getTime() / 1000),
       contributionTokenName: transfer?.token?.name,
       contributionTokenSymbol: transfer?.token?.symbol,
       contributionTokenAddress: transfer?.token?.address?.toLowerCase(),
@@ -65,6 +89,29 @@ const fetchPulsechainTransactions = async () => {
       contributionTokenName: "Pulsechain",
       contributionTokenSymbol: "PLS",
       contributionTokenAddress: secrets?.WPLS_PULSECHAIN_ADDRESS?.toLowerCase(),
+      totalContributionTokenAmount:
+        parseFloat(transfer?.value) / Math.pow(10, 18),
+    };
+  });
+
+  return modifiedResponse;
+};
+
+const fetchBaseTransactions = async () => {
+  const response = await axios.get(
+    `${secrets[urlKeyMapping?.base]}/api?module=account&action=txlist&address=${
+      secrets[tokenContractAddressMapping?.base]
+    }`
+  );
+
+  const modifiedResponse = response?.data?.result?.map((transfer) => {
+    return {
+      walletAddress: transfer?.from,
+      transactionHash: transfer?.hash,
+      timestamp: parseInt(transfer?.timeStamp),
+      contributionTokenName: "Ethereum",
+      contributionTokenSymbol: "ETH",
+      contributionTokenAddress: secrets?.WETH_BASE_ADDRESS?.toLowerCase(),
       totalContributionTokenAmount:
         parseFloat(transfer?.value) / Math.pow(10, 18),
     };
@@ -147,9 +194,9 @@ const fetchTokenPrice = async (
   let url = `${secrets?.COINGECKO_API_URL}/api/v3/onchain/networks/${network}/pools/${poolAddress}/ohlcv/minute?before_timestamp=${timestamp}&token=${tokenAddress}`;
   if (
     (tokenAddress === secrets?.WETH_BASE_ADDRESS?.toLowerCase() &&
-      network.toLowerCase() === "ethereum") ||
+      network.toLowerCase() === "base") ||
     (tokenAddress === secrets?.WPLS_PULSECHAIN_ADDRESS?.toLowerCase() &&
-      network.toLowerCase() === "pulsechain")
+      network.toLowerCase() === "base")
   ) {
     url = `${secrets?.COINGECKO_API_URL}/api/v3/onchain/networks/${network}/pools/${poolAddress}/ohlcv/minute?before_timestamp=${timestamp}&token=quote`;
   }
@@ -167,30 +214,40 @@ const fetchTokenPrice = async (
 };
 
 const modifyContributions = async (contributions, blockchain) => {
-  const poolMapping = await fetchGoogleSheetPoolMappings(blockchain);
+  const poolMapping = await fetchGoogleSheetPoolMappings(
+    blockchain === "base" ? "ethereum" : blockchain
+  );
   const modifiedContributions = [];
 
   for (const contribution of contributions) {
-    const tokenPriceAndPoolAddress = await fetchTokenPrice(
-      contribution?.contributionTokenAddress,
-      poolMapping,
-      blockchain,
-      contribution?.timestamp
-    );
+    try {
+      const tokenPriceAndPoolAddress = await fetchTokenPrice(
+        contribution?.contributionTokenAddress,
+        poolMapping,
+        blockchain,
+        contribution?.timestamp
+      );
 
-    const contributionTokenUSDPrice = tokenPriceAndPoolAddress?.price;
-    const contributionTokenPoolAddress = tokenPriceAndPoolAddress?.poolAddress;
-    const approxContributionValueInUSD =
-      contributionTokenUSDPrice * contribution?.totalContributionTokenAmount;
+      const contributionTokenUSDPrice =
+        tokenPriceAndPoolAddress?.price || secrets?.DEFAULT_TOKEN_PRICE_ERA_1;
+      const contributionTokenPoolAddress =
+        tokenPriceAndPoolAddress?.poolAddress;
+      const approxContributionValueInUSD =
+        contributionTokenUSDPrice * contribution?.totalContributionTokenAmount;
 
-    modifiedContributions.push({
-      ...contribution,
-      contributionTokenUSDPrice,
-      approxContributionValueInUSD,
-      contributionTokenPoolAddress,
-      era: 1,
-    });
-
+      modifiedContributions.push({
+        ...contribution,
+        contributionTokenUSDPrice,
+        approxContributionValueInUSD,
+        contributionTokenPoolAddress,
+        era: 1,
+        blockchain: blockchain,
+      });
+    } catch (error) {
+      console.log(
+        `Error while fetching token ${contribution?.contributionTokenAddress}: ${error}`
+      );
+    }
     await sleep(500);
   }
 
@@ -207,12 +264,12 @@ const fetchContributions = async (blockchain) => {
   const transactions =
     blockchain === "pulsechain"
       ? await fetchPulsechainTransactions()
-      : await fetchPulsechainTransactions();
+      : await fetchBaseTransactions();
 
   const tokenTransfers =
     blockchain === "pulsechain"
       ? await fetchPulsechainTokenTransfers()
-      : await fetchPulsechainTokenTransfers();
+      : await fetchBaseTokenTransfers();
 
   const dbContributions = await contributionsModel.find({});
   const dbTransactionHashes = new Set(
@@ -220,7 +277,28 @@ const fetchContributions = async (blockchain) => {
   );
 
   //   const contributions = [...transactions, ...tokenTransfers];
-  const contributions = [transactions[1], tokenTransfers[1]];
+  const contributions = [
+    transactions[0],
+    transactions[1],
+    transactions[2],
+    transactions[3],
+    transactions[4],
+    transactions[5],
+    transactions[6],
+    transactions[7],
+    transactions[8],
+    transactions[9],
+    tokenTransfers[0],
+    tokenTransfers[1],
+    tokenTransfers[2],
+    tokenTransfers[3],
+    tokenTransfers[4],
+    tokenTransfers[5],
+    tokenTransfers[6],
+    tokenTransfers[7],
+    tokenTransfers[8],
+    tokenTransfers[9],
+  ];
 
   const newContributions = contributions.filter(
     (contribution) => !dbTransactionHashes.has(contribution.transactionHash)
@@ -238,7 +316,7 @@ const fetchContributions = async (blockchain) => {
 
   let pointsList = [];
   insertedContributions.forEach((contribution) => {
-    const multiplier = getMultiplier(contribution.timestamp);
+    const multiplier = getMultiplier(contribution.timestamp, 1);
     pointsList.push({
       era: 1,
       walletAddress: contribution.walletAddress,
@@ -246,6 +324,7 @@ const fetchContributions = async (blockchain) => {
       multiplier,
       points: contribution.approxContributionValueInUSD * multiplier,
       isGrantedByAdmin: false,
+      blockchain: blockchain,
     });
   });
   console.log("Points List: ", pointsList);
@@ -255,4 +334,5 @@ const fetchContributions = async (blockchain) => {
   mongoose.connection.close();
 };
 
-fetchContributions("pulsechain");
+// fetchContributions("base");
+// fetchContributions("pulsechain");

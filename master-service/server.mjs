@@ -6,6 +6,10 @@ import { enrollUserToNewsletter } from "./utils/newsletter.mjs";
 import { checkOrCreateUser } from "./utils/user.mjs";
 import { verifyMining } from "./utils/mining.mjs";
 import { fetchSecretsList } from "../secrets-manager/secrets-manager.mjs";
+import { generateNFTPayload } from "./utils/nft.mjs";
+import axios from "axios";
+
+const secrets = await fetchSecretsList();
 
 const app = express();
 app.use(express.json());
@@ -23,13 +27,11 @@ app.post("/api/leaderboard", async (req, res) => {
 
 app.post("/api/token-price", async (req, res) => {
   try {
-    const { tokenAddress, poolAddress, network, timestamp, isNativeToken } =
-      req.body;
+    const { tokenAddress, poolAddress, network, isNativeToken } = req.body;
     const price = await fetchTokenPrice(
       tokenAddress,
       poolAddress,
       network,
-      timestamp,
       isNativeToken
     );
     res.json(price);
@@ -72,7 +74,31 @@ app.post("/api/verify-mining", async (req, res) => {
   }
 });
 
-const secrets = await fetchSecretsList();
+app.post("/api/generate-nft", async (req, res) => {
+  try {
+    const { tokenId, era, blockchain } = req.body;
+    const nftPayload = await generateNFTPayload(tokenId, era, blockchain);
+    const nftFileName =
+      era === 1
+        ? `${nftPayload?.userWalletAddress}_${era}_${nftPayload?.totalPoints
+            ?.toString()
+            ?.replace(".", "_")}_${blockchain}`
+        : `${nftPayload?.userWalletAddress}_${era}_${nftPayload?.totalPoints
+            ?.toString()
+            ?.replace(".", "_")}`;
+
+    const response = await axios.post(secrets?.NFT_SERVICE_URL, {
+      nftPayload,
+      filename: nftFileName,
+    });
+
+    res.json(response.data);
+  } catch (error) {
+    console.error(error);
+    res.status(500).send("Internal Server Error");
+  }
+});
+
 await mongoose.connect(secrets?.MONGODB_CONNECTION_STRING);
 
 const PORT = 3000;

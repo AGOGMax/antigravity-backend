@@ -1,9 +1,4 @@
-import mongoose from "mongoose";
-
-const { Schema, model } = mongoose;
-
-const usersSchema = new Schema({}, { strict: false });
-const usersModel = model("users", usersSchema);
+import { usersModel } from "../models/models.mjs";
 
 export const checkOrCreateUser = async (walletAddress) => {
   let user = await usersModel.findOne({ walletAddress: walletAddress });
