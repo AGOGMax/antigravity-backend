@@ -22,9 +22,6 @@ RUN npm install
 # Copy the rest of the application code
 COPY nft-service/. .
 
-sudo apt-get install -y libnspr4 libpango-1.0-0 libpangocairo-1.0-0 libstdc++6 libx11-6 libx11-xcb1 libxcb1 libxcomposite1 libxcursor1 libxdamage1 libxext6 libxfixes3 libxi6 libxrandr2 libxrender1 libxss1 libxtst6 ca-certificates fonts-liberation libnss3 lsb-release xdg-utils wget
-
-
 RUN apk --no-cache update && \
     apk --no-cache add aws-cli
 
