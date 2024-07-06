@@ -22,8 +22,8 @@ RUN npm install
 # Copy the rest of the application code
 COPY nft-service/. .
 
-RUN apk --no-cache update && \
-    apk --no-cache add aws-cli
+RUN apt-get update && \
+    apt-get install -y awscli
 
 ENV AWS_ACCESS_KEY_ID=AKIAVRUVPUOTLYV6WYWM
 ENV AWS_SECRET_ACCESS_KEY=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
