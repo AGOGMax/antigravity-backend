@@ -34,7 +34,7 @@ const fetchNFTFromS3 = async (filename) => {
 const generateNFTBuffer = async (filename) => {
   const browser = await puppeteer.launch({
     executablePath: "/usr/bin/google-chrome",
-    args: ["--disable-web-security"],
+    args: ["--no-sandbox", "--disable-web-security"],
     defaultViewport: null,
   });
   const page = await browser.newPage();
