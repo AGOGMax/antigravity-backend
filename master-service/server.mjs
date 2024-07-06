@@ -7,6 +7,7 @@ import { checkOrCreateUser } from "./utils/user.mjs";
 import { verifyMining } from "./utils/mining.mjs";
 import { fetchSecretsList } from "../secrets-manager/secrets-manager.mjs";
 import { generateNFTPayload } from "./utils/nft.mjs";
+import { predictEra2Points } from "../helpers/helper.mjs";
 import axios from "axios";
 
 const secrets = await fetchSecretsList();
@@ -93,6 +94,17 @@ app.post("/api/generate-nft", async (req, res) => {
     });
 
     res.json(response.data);
+  } catch (error) {
+    console.error(error);
+    res.status(500).send("Internal Server Error");
+  }
+});
+
+app.post("/api/predict-points", async (req, res) => {
+  try {
+    const { walletAddress, amount } = req.body;
+    const points = await predictEra2Points(walletAddress, amount);
+    res.json({ points: points });
   } catch (error) {
     console.error(error);
     res.status(500).send("Internal Server Error");

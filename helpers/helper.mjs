@@ -1,5 +1,6 @@
 import axios from "axios";
 import { fetchSecretsList } from "../secrets-manager/secrets-manager.mjs";
+import { contributionsModel } from "../master-service/models/models.mjs";
 
 const secrets = await fetchSecretsList();
 
@@ -32,10 +33,7 @@ const getBadge = (points) => {
   return "No Badge";
 };
 
-const getMultiplier = async (timestamp, era) => {
-  const timestampResponse = await axios.get(secrets?.TIMESTAMP_API_LINK);
-  const timestamps = timestampResponse.data?.result;
-
+const getMultiplier = (timestamp, era, timestamps) => {
   let timestampFor33;
   let timestampFor22;
 
@@ -79,15 +77,41 @@ const modifyEra2Contributions = (contributions) => {
   return modifiedContributions;
 };
 
-const generateEra2Points = (contributions, era1Contributions) => {
+const predictEra2Points = async (walletAddress, amount) => {
+  const era1Contributions = await contributionsModel.find({ era: 1 });
+  const era1ContributionUsers = new Set(
+    era1Contributions.map((contribution) => contribution.walletAddress)
+  );
+
+  const timestampResponse = await axios.get(secrets?.TIMESTAMP_API_LINK);
+  const timestamps = timestampResponse.data?.result;
+
+  let rewardMultiplier = 1;
+  const multiplier = getMultiplier(
+    Math.floor(Date.now() / 1000),
+    2,
+    timestamps
+  );
+
+  if (era1ContributionUsers.has(walletAddress)) {
+    rewardMultiplier = secrets?.ERA_2_REWARD_MULTIPLIER || 2;
+  }
+  return amount * multiplier * rewardMultiplier;
+};
+
+const generateEra2Points = async (contributions, era1Contributions) => {
   const era1ContributionUsers = new Set(
     era1Contributions.map((contribution) => contribution.walletAddress)
   );
 
   let pointsList = [];
+
+  const timestampResponse = await axios.get(secrets?.TIMESTAMP_API_LINK);
+  const timestamps = timestampResponse.data?.result;
+
   let rewardMultiplier = 1;
   contributions.forEach((contribution) => {
-    const multiplier = getMultiplier(contribution.timestamp, 2);
+    const multiplier = getMultiplier(contribution.timestamp, 2, timestamps);
     if (era1ContributionUsers.has(contribution.walletAddress)) {
       rewardMultiplier = secrets?.ERA_2_REWARD_MULTIPLIER || 2;
     }
@@ -104,4 +128,10 @@ const generateEra2Points = (contributions, era1Contributions) => {
   return pointsList;
 };
 
-export { modifyEra2Contributions, generateEra2Points, getMultiplier, getBadge };
+export {
+  modifyEra2Contributions,
+  generateEra2Points,
+  getMultiplier,
+  getBadge,
+  predictEra2Points,
+};

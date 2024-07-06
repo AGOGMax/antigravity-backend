@@ -315,8 +315,12 @@ const fetchContributions = async (blockchain) => {
   );
 
   let pointsList = [];
+
+  const timestampResponse = await axios.get(secrets?.TIMESTAMP_API_LINK);
+  const timestamps = timestampResponse.data?.result;
+
   insertedContributions.forEach((contribution) => {
-    const multiplier = getMultiplier(contribution.timestamp, 1);
+    const multiplier = getMultiplier(contribution.timestamp, 1, timestamps);
     pointsList.push({
       era: 1,
       walletAddress: contribution.walletAddress,

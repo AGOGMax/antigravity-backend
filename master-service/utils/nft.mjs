@@ -4,7 +4,7 @@ import {
   usersModel,
 } from "../models/models.mjs";
 
-import { getBadge } from "../../helpers/helper.mjs";
+import { fetchEraPointsAndRankByWalletAddress } from "./user.mjs";
 
 export const generateNFTPayload = async (tokenId, era, blockchain) => {
   if (era === 1) {
@@ -83,34 +83,12 @@ export const generateNFTPayload = async (tokenId, era, blockchain) => {
 
     const userWalletAddress = user?.walletAddress;
 
-    const points = await pointsModel.aggregate([
-      { $match: { walletAddress: userWalletAddress } },
-      {
-        $group: {
-          _id: "$era",
-          totalPoints: { $sum: "$points" },
-        },
-      },
-    ]);
-
-    let wishwellPoints = 0;
-    let miningPoints = 0;
-
-    points.forEach((doc) => {
-      if (doc._id === 1) {
-        wishwellPoints = doc.totalPoints;
-      } else if (doc._id === 2) {
-        miningPoints = doc.totalPoints;
-      }
-    });
-
-    const totalPoints = wishwellPoints + miningPoints;
+    const points = await fetchEraPointsAndRankByWalletAddress(
+      userWalletAddress
+    );
 
     return {
-      rank: getBadge(totalPoints),
-      wishwellPoints: wishwellPoints,
-      miningPoints: miningPoints,
-      totalPoints: totalPoints,
+      ...points,
       userWalletAddress: userWalletAddress,
       era: 2,
     };
