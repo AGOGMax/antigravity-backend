@@ -1,5 +1,5 @@
 # Use the official Node.js image from the Docker Hub
-FROM node:lts-bookworm
+FROM node:lts-alpine
 
 # Set the working directory
 WORKDIR /usr/src/nft-service/
