@@ -2,17 +2,16 @@
 FROM node:lts-alpine
 
 # Set the working directory
-WORKDIR /usr/src/app/nft-service
+WORKDIR /usr/src/nft-service/
 
 # Copy package.json and package-lock.json
-RUN mkdir nft-service
-COPY nft-service/package*.json ../nft-service/.
+COPY nft-service/package*.json .
 
 # Install dependencies
 RUN npm install
 
 # Copy the rest of the application code
-COPY nft-service/. ../nft-service/.
+COPY nft-service/. .
 
 RUN apk --no-cache update && \
     apk --no-cache add aws-cli
@@ -26,14 +25,11 @@ RUN aws configure set aws_access_key_id $AWS_ACCESS_KEY_ID && \
     aws configure set default.region $AWS_DEFAULT_REGION && \
     aws configure set default.output json
 
-RUN mkdir secrets-manager
 COPY secrets-manager/. ../secrets-manager/.
-RUN cd secrets-manager && npm install
+RUN cd ../secrets-manager && npm install
 
-RUN cd ../
-RUN mkdir helpers
 COPY helpers/. ../helpers/.
-RUN cd helpers && npm install
+RUN cd ../helpers && npm install
 
 # Expose the application port
 EXPOSE 3001
