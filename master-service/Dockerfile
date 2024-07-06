@@ -29,6 +29,7 @@ RUN aws configure set aws_access_key_id $AWS_ACCESS_KEY_ID && \
 RUN mkdir secrets-manager
 COPY secrets-manager/. ../secrets-manager/.
 RUN cd secrets-manager && npm install
+RUN npm i @aws-sdk/client-secrets-manager
 
 RUN cd ../
 RUN mkdir helpers
