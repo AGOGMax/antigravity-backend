@@ -9,11 +9,18 @@ import { fetchSecretsList } from "../secrets-manager/secrets-manager.mjs";
 import { generateNFTPayload } from "./utils/nft.mjs";
 import { predictEra2Points } from "../helpers/helper.mjs";
 import axios from "axios";
+import cors from "cors";
 
 const secrets = await fetchSecretsList();
 
+const corsOptions = {
+  credentials: true,
+  origin: ["http://localhost:3000"],
+};
+
 const app = express();
 app.use(express.json());
+app.use(cors(corsOptions));
 
 app.post("/api/leaderboard", async (req, res) => {
   try {
