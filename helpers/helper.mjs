@@ -66,7 +66,7 @@ const modifyEra2Contributions = (contributions) => {
   const modifiedContributions = contributions.map((contribution) => {
     return {
       era: 2,
-      walletAddress: contribution.user?.address,
+      walletAddress: contribution.user?.address?.toLowerCase(),
       transactionHash: contribution.transactionHash,
       timestamp: contribution.timestamp,
       contributionTokenAddress: contribution.token,
@@ -93,7 +93,7 @@ const predictEra2Points = async (walletAddress, amount) => {
     timestamps
   );
 
-  if (era1ContributionUsers.has(walletAddress)) {
+  if (era1ContributionUsers.has(walletAddress?.toLowerCase())) {
     rewardMultiplier = secrets?.ERA_2_REWARD_MULTIPLIER || 2;
   }
   return amount * multiplier * rewardMultiplier;
@@ -112,13 +112,13 @@ const generateEra2Points = async (contributions, era1Contributions) => {
   let rewardMultiplier = 1;
   contributions.forEach((contribution) => {
     const multiplier = getMultiplier(contribution.timestamp, 2, timestamps);
-    if (era1ContributionUsers.has(contribution.walletAddress)) {
+    if (era1ContributionUsers.has(contribution.walletAddress?.toLowerCase())) {
       rewardMultiplier = secrets?.ERA_2_REWARD_MULTIPLIER || 2;
     }
 
     pointsList.push({
       era: 2,
-      walletAddress: contribution.walletAddress,
+      walletAddress: contribution.walletAddress?.toLowerCase(),
       contributionId: contribution._id,
       multiplier,
       points: contribution.darkXTokenAmount * multiplier * rewardMultiplier,

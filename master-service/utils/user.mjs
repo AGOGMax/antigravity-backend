@@ -33,9 +33,11 @@ const fetchEraPointsAndRankByWalletAddress = async (userWalletAddress) => {
 };
 
 const checkOrCreateUser = async (walletAddress) => {
-  let user = await usersModel.findOne({ walletAddress: walletAddress });
+  let user = await usersModel.findOne({
+    walletAddress: walletAddress?.toLowerCase(),
+  });
   if (!user) {
-    user = new usersModel({ walletAddress: walletAddress });
+    user = new usersModel({ walletAddress: walletAddress?.toLowerCase() });
   }
 
   await user.save();
@@ -43,7 +45,7 @@ const checkOrCreateUser = async (walletAddress) => {
   if (!user.wishwellTokenId) {
     // Fetch wishwell token Id logic needs to be added.
     user = await usersModel.findOneAndUpdate(
-      { walletAddress: walletAddress },
+      { walletAddress: walletAddress?.toLowerCase() },
       { wishwellTokenId: 3 },
       { new: true }
     );
@@ -52,15 +54,39 @@ const checkOrCreateUser = async (walletAddress) => {
   if (!user.antigravityTokenId) {
     // Fetch antigravity token Id logic needs to be added.
     user = await usersModel.findOneAndUpdate(
-      { walletAddress: walletAddress },
+      { walletAddress: walletAddress?.toLowerCase() },
       { antigravityTokenId: 3 },
       { new: true }
     );
   }
 
-  const points = await fetchEraPointsAndRankByWalletAddress(walletAddress);
+  const points = await fetchEraPointsAndRankByWalletAddress(
+    walletAddress?.toLowerCase()
+  );
   console.log(points);
   return { ...user?._doc, ...points };
 };
 
-export { checkOrCreateUser, fetchEraPointsAndRankByWalletAddress };
+const fetchTotalPoints = async (walletAddress) => {
+  const result = await pointsModel.aggregate([
+    { $match: { walletAddress: walletAddress?.toLowerCase() } },
+    {
+      $group: {
+        _id: null,
+        totalPoints: { $sum: "$points" },
+      },
+    },
+  ]);
+
+  if (result.length > 0) {
+    return result[0].totalPoints;
+  } else {
+    return 0;
+  }
+};
+
+export {
+  checkOrCreateUser,
+  fetchEraPointsAndRankByWalletAddress,
+  fetchTotalPoints,
+};

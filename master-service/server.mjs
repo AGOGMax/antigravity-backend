@@ -3,7 +3,7 @@ import mongoose from "mongoose";
 import { fetchLeaderboard } from "./utils/leaderboard.mjs";
 import { fetchTokenPrice } from "./utils/price.mjs";
 import { enrollUserToNewsletter } from "./utils/newsletter.mjs";
-import { checkOrCreateUser } from "./utils/user.mjs";
+import { checkOrCreateUser, fetchTotalPoints } from "./utils/user.mjs";
 import { verifyMining } from "./utils/mining.mjs";
 import { fetchSecretsList } from "../secrets-manager/secrets-manager.mjs";
 import { generateNFTPayload } from "./utils/nft.mjs";
@@ -114,6 +114,17 @@ app.post("/api/predict-points", async (req, res) => {
   try {
     const { walletAddress, amount } = req.body;
     const points = await predictEra2Points(walletAddress, amount);
+    res.json({ points: points });
+  } catch (error) {
+    console.error(error);
+    res.status(500).send("Internal Server Error");
+  }
+});
+
+app.post("/api/total-points", async (req, res) => {
+  try {
+    const { walletAddress } = req.body;
+    const points = await fetchTotalPoints(walletAddress);
     res.json({ points: points });
   } catch (error) {
     console.error(error);

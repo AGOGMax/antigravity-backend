@@ -33,7 +33,7 @@ const fetchPulsechainTokenTransfers = async () => {
 
   const modifiedResponse = response?.data?.items?.map((transfer) => {
     return {
-      walletAddress: transfer?.from?.hash,
+      walletAddress: transfer?.from?.hash?.toLowerCase(),
       transactionHash: transfer?.tx_hash,
       timestamp: Math.floor(new Date(transfer?.timestamp).getTime() / 1000),
       contributionTokenName: transfer?.token?.name,
@@ -57,7 +57,7 @@ const fetchBaseTokenTransfers = async () => {
 
   const modifiedResponse = response?.data?.items?.map((transfer) => {
     return {
-      walletAddress: transfer?.from?.hash,
+      walletAddress: transfer?.from?.hash?.toLowerCase(),
       transactionHash: transfer?.tx_hash,
       timestamp: Math.floor(new Date(transfer?.timestamp).getTime() / 1000),
       contributionTokenName: transfer?.token?.name,
@@ -83,7 +83,7 @@ const fetchPulsechainTransactions = async () => {
 
   const modifiedResponse = response?.data?.result?.map((transfer) => {
     return {
-      walletAddress: transfer?.from,
+      walletAddress: transfer?.from?.toLowerCase(),
       transactionHash: transfer?.hash,
       timestamp: parseInt(transfer?.timeStamp),
       contributionTokenName: "Pulsechain",
@@ -106,7 +106,7 @@ const fetchBaseTransactions = async () => {
 
   const modifiedResponse = response?.data?.result?.map((transfer) => {
     return {
-      walletAddress: transfer?.from,
+      walletAddress: transfer?.from?.toLowerCase(),
       transactionHash: transfer?.hash,
       timestamp: parseInt(transfer?.timeStamp),
       contributionTokenName: "Ethereum",
@@ -323,7 +323,7 @@ const fetchContributions = async (blockchain) => {
     const multiplier = getMultiplier(contribution.timestamp, 1, timestamps);
     pointsList.push({
       era: 1,
-      walletAddress: contribution.walletAddress,
+      walletAddress: contribution.walletAddress?.toLowerCase(),
       contributionId: contribution._id,
       multiplier,
       points: contribution.approxContributionValueInUSD * multiplier,

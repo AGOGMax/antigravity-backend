@@ -13,7 +13,7 @@ export const generateNFTPayload = async (tokenId, era, blockchain) => {
       "walletAddress"
     );
 
-    const userWalletAddress = user?.walletAddress;
+    const userWalletAddress = user?.walletAddress?.toLowerCase();
 
     const contributions = await contributionsModel.aggregate([
       {
@@ -81,7 +81,7 @@ export const generateNFTPayload = async (tokenId, era, blockchain) => {
       "walletAddress"
     );
 
-    const userWalletAddress = user?.walletAddress;
+    const userWalletAddress = user?.walletAddress?.toLowerCase();
 
     const points = await fetchEraPointsAndRankByWalletAddress(
       userWalletAddress
