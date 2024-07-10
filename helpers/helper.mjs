@@ -39,17 +39,17 @@ const getMultiplier = (timestamp, era, timestamps) => {
 
   if (era === 1) {
     timestampFor33 = Math.floor(
-      new Date(timestamps.era_1_phase_1_start).getTime() / 1000
+      new Date(timestamps.era_1_phase_1_end).getTime() / 1000
     );
     timestampFor22 = Math.floor(
-      new Date(timestamps.era_1_phase_2_start).getTime() / 1000
+      new Date(timestamps.era_1_phase_2_end).getTime() / 1000
     );
   } else if (era === 2) {
     timestampFor33 = Math.floor(
-      new Date(timestamps.era_2_phase_1_start).getTime() / 1000
+      new Date(timestamps.era_2_phase_1_end).getTime() / 1000
     );
     timestampFor22 = Math.floor(
-      new Date(timestamps.era_2_phase_2_start).getTime() / 1000
+      new Date(timestamps.era_2_phase_2_end).getTime() / 1000
     );
   }
 
@@ -62,7 +62,7 @@ const getMultiplier = (timestamp, era, timestamps) => {
   }
 };
 
-const modifyEra2Contributions = (contributions) => {
+const modifyEra2Contributions = (contributions, blockchain) => {
   const modifiedContributions = contributions.map((contribution) => {
     return {
       era: 2,
@@ -72,6 +72,7 @@ const modifyEra2Contributions = (contributions) => {
       contributionTokenAddress: contribution.token,
       totalContributionTokenAmount: contribution.amount,
       darkXTokenAmount: contribution.amount / Math.pow(10, 18),
+      blockchain,
     };
   });
   return modifiedContributions;
@@ -99,7 +100,11 @@ const predictEra2Points = async (walletAddress, amount) => {
   return amount * multiplier * rewardMultiplier;
 };
 
-const generateEra2Points = async (contributions, era1Contributions) => {
+const generateEra2Points = async (
+  contributions,
+  era1Contributions,
+  blockchain
+) => {
   const era1ContributionUsers = new Set(
     era1Contributions.map((contribution) => contribution.walletAddress)
   );
@@ -123,6 +128,7 @@ const generateEra2Points = async (contributions, era1Contributions) => {
       multiplier,
       points: contribution.darkXTokenAmount * multiplier * rewardMultiplier,
       isGrantedByAdmin: false,
+      blockchain,
     });
   });
   return pointsList;

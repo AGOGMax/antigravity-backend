@@ -11,7 +11,7 @@ const { Schema, model } = mongoose;
 const secrets = await fetchSecretsList();
 await mongoose.connect(secrets?.MONGODB_CONNECTION_STRING);
 
-const fetchContributions = async () => {
+const fetchContributions = async (blockchain) => {
   const contributionsSchema = new Schema({}, { strict: false });
   const contributionsModel = model("contributions", contributionsSchema);
 
@@ -38,7 +38,10 @@ const fetchContributions = async () => {
     }
   `;
 
-  const url = secrets?.ERA_2_SUBGRAPH_URL;
+  const url =
+    blockchain === "base"
+      ? secrets?.ERA_2_BASE_SUBGRAPH_URL
+      : secrets?.ERA_2_PULSECHAIN_SUBGRAPH_URL;
 
   const response = await axios.post(
     url,
@@ -58,7 +61,10 @@ const fetchContributions = async () => {
     (contribution) => !dbTransactionHashes.has(contribution.transactionHash)
   );
 
-  const modifiedContributions = modifyEra2Contributions(newContributions);
+  const modifiedContributions = modifyEra2Contributions(
+    newContributions,
+    blockchain
+  );
 
   const insertedContributions = await contributionsModel.insertMany(
     modifiedContributions
@@ -67,7 +73,8 @@ const fetchContributions = async () => {
   const era1Contributions = await contributionsModel.find({ era: 1 });
   const pointsList = generateEra2Points(
     insertedContributions,
-    era1Contributions
+    era1Contributions,
+    blockchain
   );
 
   if (pointsList?.length) {
@@ -76,4 +83,4 @@ const fetchContributions = async () => {
   mongoose.connection.close();
 };
 
-fetchContributions();
+// fetchContributions("base");

@@ -8,7 +8,7 @@ import {
 
 const secrets = await fetchSecretsList();
 
-export const verifyMining = async (walletAddress) => {
+export const verifyMining = async (walletAddress, blockchain) => {
   const dbContributions = await contributionsModel.find({ era: 2 });
   const dbTransactionHashes = new Set(
     dbContributions.map((contribution) => contribution.transactionHash)
@@ -29,7 +29,10 @@ export const verifyMining = async (walletAddress) => {
   }
 `;
 
-  const url = secrets?.ERA_2_SUBGRAPH_URL;
+  const url =
+    blockchain === "base"
+      ? secrets?.ERA_2_BASE_SUBGRAPH_URL
+      : secrets?.ERA_2_PULSECHAIN_SUBGRAPH_URL;
 
   const response = await axios.post(
     url,
@@ -48,7 +51,10 @@ export const verifyMining = async (walletAddress) => {
     (contribution) => !dbTransactionHashes.has(contribution.transactionHash)
   );
 
-  const modifiedContributions = modifyEra2Contributions(newContributions);
+  const modifiedContributions = modifyEra2Contributions(
+    newContributions,
+    blockchain
+  );
   const insertedContributions = await contributionsModel.insertMany(
     modifiedContributions
   );
@@ -56,7 +62,8 @@ export const verifyMining = async (walletAddress) => {
   const era1Contributions = await contributionsModel.find({ era: 1 });
   const pointsList = generateEra2Points(
     insertedContributions,
-    era1Contributions
+    era1Contributions,
+    blockchain
   );
 
   if (pointsList?.length) {

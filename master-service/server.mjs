@@ -76,8 +76,8 @@ app.post("/api/user", async (req, res) => {
 
 app.post("/api/verify-mining", async (req, res) => {
   try {
-    const { walletAddress } = req.body;
-    const miningStatus = await verifyMining(walletAddress);
+    const { walletAddress, blockchain } = req.body;
+    const miningStatus = await verifyMining(walletAddress, blockchain);
     res.json(miningStatus);
   } catch (error) {
     console.error(error);
