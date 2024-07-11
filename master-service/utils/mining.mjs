@@ -59,7 +59,10 @@ export const verifyMining = async (walletAddress, blockchain) => {
     modifiedContributions
   );
 
-  const pointsList = generateEra2Points(insertedContributions, blockchain);
+  const pointsList = await generateEra2Points(
+    insertedContributions,
+    blockchain
+  );
 
   if (pointsList?.length) {
     await pointsModel.insertMany(pointsList);

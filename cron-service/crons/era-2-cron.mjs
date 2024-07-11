@@ -61,7 +61,13 @@ export const fetchContributions = async (blockchain) => {
     modifiedContributions
   );
 
-  const pointsList = generateEra2Points(insertedContributions, blockchain);
+  console.log("Era 2 Inserted Contributions: ", insertedContributions);
+
+  const pointsList = await generateEra2Points(
+    insertedContributions,
+    blockchain
+  );
+  console.log("Era 2 Points List: ", pointsList);
 
   if (pointsList?.length) {
     await pointsModel.insertMany(pointsList);
