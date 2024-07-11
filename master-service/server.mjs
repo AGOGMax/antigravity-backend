@@ -18,6 +18,7 @@ const corsOptions = {
   origin: [
     "http://localhost:3000",
     "https://antigravity-wishing-well-git-development-chainlabs.vercel.app",
+    "https://antigravity-wishing-well-git-development-chainlabs.vercel.app",
   ],
 };
 
