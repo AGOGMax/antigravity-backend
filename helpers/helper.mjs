@@ -79,10 +79,7 @@ const modifyEra2Contributions = (contributions, blockchain) => {
 };
 
 const predictEra2Points = async (walletAddress, amount) => {
-  const era1Contributions = await contributionsModel.find({ era: 1 });
-  const era1ContributionUsers = new Set(
-    era1Contributions.map((contribution) => contribution.walletAddress)
-  );
+  const era1ContributionUsers = await fetchEra1ContributorsFromS3();
 
   const timestampResponse = await axios.get(secrets?.TIMESTAMP_API_LINK);
   const timestamps = timestampResponse.data?.result;
@@ -94,20 +91,20 @@ const predictEra2Points = async (walletAddress, amount) => {
     timestamps
   );
 
-  if (era1ContributionUsers.has(walletAddress?.toLowerCase())) {
+  if (era1ContributionUsers.includes(walletAddress?.toLowerCase())) {
     rewardMultiplier = secrets?.ERA_2_REWARD_MULTIPLIER || 2;
   }
   return amount * multiplier * rewardMultiplier;
 };
 
-const generateEra2Points = async (
-  contributions,
-  era1Contributions,
-  blockchain
-) => {
-  const era1ContributionUsers = new Set(
-    era1Contributions.map((contribution) => contribution.walletAddress)
-  );
+const fetchEra1ContributorsFromS3 = async () => {
+  const response = await axios.get(secrets?.ERA_1_CONTRIBUTORS_S3_URL);
+
+  return response?.data?.accounts?.map((address) => address.toLowerCase());
+};
+
+const generateEra2Points = async (contributions, blockchain) => {
+  const era1ContributionUsers = await fetchEra1ContributorsFromS3();
 
   let pointsList = [];
 
@@ -117,7 +114,9 @@ const generateEra2Points = async (
   let rewardMultiplier = 1;
   contributions.forEach((contribution) => {
     const multiplier = getMultiplier(contribution.timestamp, 2, timestamps);
-    if (era1ContributionUsers.has(contribution.walletAddress?.toLowerCase())) {
+    if (
+      era1ContributionUsers.includes(contribution.walletAddress?.toLowerCase())
+    ) {
       rewardMultiplier = secrets?.ERA_2_REWARD_MULTIPLIER || 2;
     }
 

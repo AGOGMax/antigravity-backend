@@ -70,12 +70,7 @@ const fetchContributions = async (blockchain) => {
     modifiedContributions
   );
 
-  const era1Contributions = await contributionsModel.find({ era: 1 });
-  const pointsList = generateEra2Points(
-    insertedContributions,
-    era1Contributions,
-    blockchain
-  );
+  const pointsList = generateEra2Points(insertedContributions, blockchain);
 
   if (pointsList?.length) {
     await pointsModel.insertMany(pointsList);
