@@ -1,8 +1,13 @@
 import * as cron from "node-cron";
+import mongoose from "mongoose";
 import { fetchContributions as fetchEra1Contributions } from "./crons/era-1-cron.mjs";
 import { fetchContributions as fetchEra2Contributions } from "./crons/era-2-cron.mjs";
+import { fetchSecretsList } from "../secrets-manager/secrets-manager.mjs";
 
-cron.schedule("*/5 * * * *", () => {
+const secrets = await fetchSecretsList();
+await mongoose.connect(secrets?.MONGODB_CONNECTION_STRING);
+
+cron.schedule("*/3 * * * *", () => {
   console.log("Cron Ran for Era-1");
   fetchEra1Contributions("base");
   fetchEra1Contributions("pulsechain");

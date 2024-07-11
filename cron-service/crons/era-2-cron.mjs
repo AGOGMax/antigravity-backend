@@ -1,5 +1,4 @@
 import { fetchSecretsList } from "../../secrets-manager/secrets-manager.mjs";
-import mongoose from "mongoose";
 import axios from "axios";
 import {
   modifyEra2Contributions,
@@ -8,7 +7,6 @@ import {
 import { pointsModel, contributionsModel } from "../models/models.mjs";
 
 const secrets = await fetchSecretsList();
-await mongoose.connect(secrets?.MONGODB_CONNECTION_STRING);
 
 export const fetchContributions = async (blockchain) => {
   const dbContributions = await contributionsModel.find({ era: 2 });
@@ -68,5 +66,4 @@ export const fetchContributions = async (blockchain) => {
   if (pointsList?.length) {
     await pointsModel.insertMany(pointsList);
   }
-  mongoose.connection.close();
 };

@@ -2,12 +2,10 @@ import axios from "axios";
 import { google } from "googleapis";
 import { fetchSecretsList } from "../../secrets-manager/secrets-manager.mjs";
 import isEmpty from "lodash/isEmpty.js";
-import mongoose from "mongoose";
 import { getMultiplier } from "../../helpers/helper.mjs";
 import { contributionsModel, pointsModel } from "../models/models.mjs";
 
 const secrets = await fetchSecretsList();
-await mongoose.connect(secrets?.MONGODB_CONNECTION_STRING);
 
 const sleep = (ms) => {
   return new Promise((resolve) => setTimeout(resolve, ms));
@@ -328,5 +326,4 @@ export const fetchContributions = async (blockchain) => {
   if (pointsList?.length) {
     await pointsModel.insertMany(pointsList);
   }
-  mongoose.connection.close();
 };
