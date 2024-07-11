@@ -1,4 +1,5 @@
 import axios from "axios";
+import * as cron from "node-cron";
 import { google } from "googleapis";
 import { fetchSecretsList } from "../../secrets-manager/secrets-manager.mjs";
 import isEmpty from "lodash/isEmpty.js";
@@ -254,7 +255,7 @@ const modifyContributions = async (contributions, blockchain) => {
   return modifiedContributions;
 };
 
-const fetchContributions = async (blockchain) => {
+export const fetchContributions = async (blockchain) => {
   const contributionsSchema = new Schema({}, { strict: false });
   const contributionsModel = model("contributions", contributionsSchema);
 
@@ -276,7 +277,7 @@ const fetchContributions = async (blockchain) => {
     dbContributions.map((contribution) => contribution.transactionHash)
   );
 
-  //   const contributions = [...transactions, ...tokenTransfers];
+  // const contributions = [...transactions, ...tokenTransfers];
   const contributions = [
     transactions[0],
     transactions[1],
@@ -337,6 +338,3 @@ const fetchContributions = async (blockchain) => {
   }
   mongoose.connection.close();
 };
-
-// fetchContributions("base");
-// fetchContributions("pulsechain");

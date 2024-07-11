@@ -1,5 +1,9 @@
+import axios from "axios";
 import { getBadge } from "../../helpers/helper.mjs";
 import { usersModel, pointsModel } from "../models/models.mjs";
+import { fetchSecretsList } from "../../secrets-manager/secrets-manager.mjs";
+
+const secrets = await fetchSecretsList();
 
 const fetchEraPointsAndRankByWalletAddress = async (userWalletAddress) => {
   const points = await pointsModel.aggregate([
@@ -32,6 +36,42 @@ const fetchEraPointsAndRankByWalletAddress = async (userWalletAddress) => {
   };
 };
 
+const fetchUserFromSubgraph = async (walletAddress, blockchain, era) => {
+  const userQuery = `
+  query MyQuery {
+    users(where: {address: "${walletAddress}"}) {
+      wishwellId {
+        tokenId
+      }
+      antigravity {
+        tokenId
+      }
+    }
+  }`;
+
+  const url =
+    blockchain === "base"
+      ? secrets?.ERA_2_BASE_SUBGRAPH_URL
+      : secrets?.ERA_2_PULSECHAIN_SUBGRAPH_URL;
+
+  const response = await axios.post(
+    url,
+    {
+      query: userQuery,
+    },
+    {
+      headers: {
+        "Content-Type": "application/json",
+      },
+    }
+  );
+
+  const userData = response?.data?.data?.users?.[0];
+  return era === 1
+    ? userData?.wishwellId?.tokenId
+    : userData?.antigravity?.tokenId;
+};
+
 const checkOrCreateUser = async (walletAddress) => {
   let user = await usersModel.findOne({
     walletAddress: walletAddress?.toLowerCase(),
@@ -42,20 +82,60 @@ const checkOrCreateUser = async (walletAddress) => {
 
   await user.save();
 
-  if (!user.wishwellTokenId) {
-    // Fetch wishwell token Id logic needs to be added.
-    user = await usersModel.findOneAndUpdate(
-      { walletAddress: walletAddress?.toLowerCase() },
-      { wishwellTokenId: 3 },
-      { new: true }
+  const tokenIdPromises = [];
+  if (!user.wishwellBaseTokenId) {
+    tokenIdPromises.push(
+      fetchUserFromSubgraph(walletAddress, "base", 1).then(
+        (wishwellBaseTokenId) => ({
+          field: "wishwellBaseTokenId",
+          value: wishwellBaseTokenId,
+        })
+      )
     );
   }
 
-  if (!user.antigravityTokenId) {
-    // Fetch antigravity token Id logic needs to be added.
+  if (!user.antigravityBaseTokenId) {
+    tokenIdPromises.push(
+      fetchUserFromSubgraph(walletAddress, "base", 2).then(
+        (antigravityBaseTokenId) => ({
+          field: "antigravityBaseTokenId",
+          value: antigravityBaseTokenId,
+        })
+      )
+    );
+  }
+
+  if (!user.antigravityPulsechainTokenId) {
+    tokenIdPromises.push(
+      fetchUserFromSubgraph(walletAddress, "pulsechain", 2).then(
+        (antigravityPulsechainTokenId) => ({
+          field: "antigravityPulsechainTokenId",
+          value: antigravityPulsechainTokenId,
+        })
+      )
+    );
+  }
+
+  if (!user.wishwellPulsechainTokenId) {
+    tokenIdPromises.push(
+      fetchUserFromSubgraph(walletAddress, "pulsechain", 1).then(
+        (wishwellPulsechainTokenId) => ({
+          field: "wishwellPulsechainTokenId",
+          value: wishwellPulsechainTokenId,
+        })
+      )
+    );
+  }
+  const tokenIdResults = await Promise.all(tokenIdPromises);
+  const tokenIdMapping = tokenIdResults.reduce((acc, result) => {
+    acc[result.field] = result.value;
+    return acc;
+  }, {});
+
+  if (Object.keys(tokenIdMapping).length > 0) {
     user = await usersModel.findOneAndUpdate(
       { walletAddress: walletAddress?.toLowerCase() },
-      { antigravityTokenId: 3 },
+      tokenIdMapping,
       { new: true }
     );
   }
@@ -63,7 +143,7 @@ const checkOrCreateUser = async (walletAddress) => {
   const points = await fetchEraPointsAndRankByWalletAddress(
     walletAddress?.toLowerCase()
   );
-  console.log(points);
+
   return { ...user?._doc, ...points };
 };
 

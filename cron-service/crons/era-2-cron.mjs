@@ -5,13 +5,14 @@ import {
   modifyEra2Contributions,
   generateEra2Points,
 } from "../../helpers/helper.mjs";
+import * as cron from "node-cron";
 
 const { Schema, model } = mongoose;
 
 const secrets = await fetchSecretsList();
 await mongoose.connect(secrets?.MONGODB_CONNECTION_STRING);
 
-const fetchContributions = async (blockchain) => {
+export const fetchContributions = async (blockchain) => {
   const contributionsSchema = new Schema({}, { strict: false });
   const contributionsModel = model("contributions", contributionsSchema);
 
@@ -77,5 +78,3 @@ const fetchContributions = async (blockchain) => {
   }
   mongoose.connection.close();
 };
-
-// fetchContributions("base");

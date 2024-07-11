@@ -2,7 +2,10 @@ import express from "express";
 import mongoose from "mongoose";
 import { fetchLeaderboard } from "./utils/leaderboard.mjs";
 import { fetchTokenPrice } from "./utils/price.mjs";
-import { enrollUserToNewsletter } from "./utils/newsletter.mjs";
+import {
+  enrollUserToNewsletter,
+  fetchNewsletterEnrollments,
+} from "./utils/newsletter.mjs";
 import { checkOrCreateUser, fetchTotalPoints } from "./utils/user.mjs";
 import { verifyMining } from "./utils/mining.mjs";
 import { fetchSecretsList } from "../secrets-manager/secrets-manager.mjs";
@@ -54,6 +57,16 @@ app.post("/api/newsletter", async (req, res) => {
     const { name, email } = req.body;
     const newsletter = await enrollUserToNewsletter(name, email);
     res.json(newsletter);
+  } catch (error) {
+    console.error(error);
+    res.status(500).send("Internal Server Error");
+  }
+});
+
+app.get("/api/newsletter", async (req, res) => {
+  try {
+    const enrollments = await fetchNewsletterEnrollments();
+    res.json(enrollments);
   } catch (error) {
     console.error(error);
     res.status(500).send("Internal Server Error");

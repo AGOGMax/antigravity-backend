@@ -1,6 +1,5 @@
 import axios from "axios";
 import { fetchSecretsList } from "../secrets-manager/secrets-manager.mjs";
-import { contributionsModel } from "../master-service/models/models.mjs";
 
 const secrets = await fetchSecretsList();
 

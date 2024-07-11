@@ -9,7 +9,11 @@ import { fetchEraPointsAndRankByWalletAddress } from "./user.mjs";
 export const generateNFTPayload = async (tokenId, era, blockchain) => {
   if (era === 1) {
     const user = await usersModel.findOne(
-      { wishwellTokenId: tokenId },
+      {
+        [blockchain === "base"
+          ? "wishwellBaseTokenId"
+          : "wishwellPulsechainTokenId"]: tokenId,
+      },
       "walletAddress"
     );
 
@@ -77,7 +81,11 @@ export const generateNFTPayload = async (tokenId, era, blockchain) => {
     };
   } else if (era === 2) {
     const user = await usersModel.findOne(
-      { antigravityTokenId: tokenId },
+      {
+        [blockchain === "base"
+          ? "antigravityBaseTokenId"
+          : "antigravityPulsechainTokenId"]: tokenId,
+      },
       "walletAddress"
     );
 

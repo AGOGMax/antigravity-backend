@@ -8,10 +8,23 @@ const newsletterEnrollmentModel = model(
   newsletterEnrollmentSchema
 );
 
-export const enrollUserToNewsletter = async (name, email) => {
-  await newsletterEnrollmentModel.create({
-    name: name,
+const enrollUserToNewsletter = async (name, email) => {
+  const existingUser = await newsletterEnrollmentModel.findOne({
     email: email,
   });
+
+  if (!existingUser) {
+    await newsletterEnrollmentModel.create({
+      name: name,
+      email: email,
+    });
+  }
   return { success: true };
 };
+
+const fetchNewsletterEnrollments = async () => {
+  const enrollments = await newsletterEnrollmentModel.find();
+  return enrollments;
+};
+
+export { enrollUserToNewsletter, fetchNewsletterEnrollments };
