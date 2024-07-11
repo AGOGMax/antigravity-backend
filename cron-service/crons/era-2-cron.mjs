@@ -5,20 +5,12 @@ import {
   modifyEra2Contributions,
   generateEra2Points,
 } from "../../helpers/helper.mjs";
-import * as cron from "node-cron";
-
-const { Schema, model } = mongoose;
+import { pointsModel, contributionsModel } from "../models/models.mjs";
 
 const secrets = await fetchSecretsList();
 await mongoose.connect(secrets?.MONGODB_CONNECTION_STRING);
 
 export const fetchContributions = async (blockchain) => {
-  const contributionsSchema = new Schema({}, { strict: false });
-  const contributionsModel = model("contributions", contributionsSchema);
-
-  const pointsSchema = new Schema({}, { strict: false });
-  const pointsModel = model("points", pointsSchema);
-
   const dbContributions = await contributionsModel.find({ era: 2 });
   const dbTransactionHashes = new Set(
     dbContributions.map((contribution) => contribution.transactionHash)

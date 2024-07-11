@@ -1,12 +1,10 @@
 import axios from "axios";
-import * as cron from "node-cron";
 import { google } from "googleapis";
 import { fetchSecretsList } from "../../secrets-manager/secrets-manager.mjs";
 import isEmpty from "lodash/isEmpty.js";
 import mongoose from "mongoose";
 import { getMultiplier } from "../../helpers/helper.mjs";
-
-const { Schema, model } = mongoose;
+import { contributionsModel, pointsModel } from "../models/models.mjs";
 
 const secrets = await fetchSecretsList();
 await mongoose.connect(secrets?.MONGODB_CONNECTION_STRING);
@@ -256,12 +254,6 @@ const modifyContributions = async (contributions, blockchain) => {
 };
 
 export const fetchContributions = async (blockchain) => {
-  const contributionsSchema = new Schema({}, { strict: false });
-  const contributionsModel = model("contributions", contributionsSchema);
-
-  const pointsSchema = new Schema({}, { strict: false });
-  const pointsModel = model("points", pointsSchema);
-
   const transactions =
     blockchain === "pulsechain"
       ? await fetchPulsechainTransactions()
