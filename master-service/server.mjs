@@ -15,11 +15,7 @@ const secrets = await fetchSecretsList();
 
 const corsOptions = {
   credentials: true,
-  origin: [
-    "http://localhost:3000",
-    "https://antigravity-wishing-well-git-development-chainlabs.vercel.app",
-    "https://antigravity-wishing-well-git-development-chainlabs.vercel.app",
-  ],
+  origin: "*",
 };
 
 const app = express();
