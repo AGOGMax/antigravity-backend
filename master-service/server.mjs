@@ -13,6 +13,10 @@ import { generateNFTPayload } from "./utils/nft.mjs";
 import { predictEra2Points } from "../helpers/helper.mjs";
 import axios from "axios";
 import cors from "cors";
+import {
+  fetchEra1Contributors,
+  fetchEra2Points,
+} from "./utils/contributions.mjs";
 
 const secrets = await fetchSecretsList();
 
@@ -135,6 +139,26 @@ app.post("/api/total-points", async (req, res) => {
   try {
     const { walletAddress } = req.body;
     const points = await fetchTotalPoints(walletAddress);
+    res.json({ points: points });
+  } catch (error) {
+    console.error(error);
+    res.status(500).send("Internal Server Error");
+  }
+});
+
+app.get("/api/era-1-contributors", async (req, res) => {
+  try {
+    const contributors = await fetchEra1Contributors();
+    res.json({ contributors: contributors });
+  } catch (error) {
+    console.error(error);
+    res.status(500).send("Internal Server Error");
+  }
+});
+
+app.get("/api/era-2-points", async (req, res) => {
+  try {
+    const points = await fetchEra2Points();
     res.json({ points: points });
   } catch (error) {
     console.error(error);
