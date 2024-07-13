@@ -25,9 +25,9 @@ COPY nft-service/. .
 RUN apt-get update && \
     apt-get install -y awscli
 
-ENV AWS_ACCESS_KEY_ID=AKIAVRUVPUOTLYV6WYWM
-ENV AWS_SECRET_ACCESS_KEY=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
-ENV AWS_DEFAULT_REGION=us-east-1
+ENV AWS_ACCESS_KEY_ID=
+ENV AWS_SECRET_ACCESS_KEY=
+ENV AWS_DEFAULT_REGION=
 
 RUN aws configure set aws_access_key_id $AWS_ACCESS_KEY_ID && \
     aws configure set aws_secret_access_key $AWS_SECRET_ACCESS_KEY && \

@@ -17,6 +17,8 @@ import {
   fetchEra1Contributors,
   fetchEra2Points,
 } from "./utils/contributions.mjs";
+import * as Sentry from "@sentry/node";
+import { nodeProfilingIntegration } from "@sentry/profiling-node";
 
 const secrets = await fetchSecretsList();
 
@@ -26,6 +28,14 @@ const corsOptions = {
 };
 
 const app = express();
+
+Sentry.init({
+  dsn: secrets?.SENTRY_DSN_URL,
+  integrations: [nodeProfilingIntegration()],
+  tracesSampleRate: 1.0,
+  profilesSampleRate: 1.0,
+});
+
 app.use(express.json());
 app.use(cors(corsOptions));
 
@@ -165,6 +175,8 @@ app.get("/api/era-2-points", async (req, res) => {
     res.status(500).send("Internal Server Error");
   }
 });
+
+Sentry.setupExpressErrorHandler(app);
 
 await mongoose.connect(secrets?.MONGODB_CONNECTION_STRING);
 

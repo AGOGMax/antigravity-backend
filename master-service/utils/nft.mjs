@@ -12,7 +12,7 @@ export const generateNFTPayload = async (tokenId, era, blockchain) => {
       {
         [blockchain === "base"
           ? "wishwellBaseTokenId"
-          : "wishwellPulsechainTokenId"]: tokenId,
+          : "wishwellPulsechainTokenId"]: tokenId.toString(),
       },
       "walletAddress"
     );
@@ -84,7 +84,7 @@ export const generateNFTPayload = async (tokenId, era, blockchain) => {
       {
         [blockchain === "base"
           ? "antigravityBaseTokenId"
-          : "antigravityPulsechainTokenId"]: tokenId,
+          : "antigravityPulsechainTokenId"]: tokenId.toString(),
       },
       "walletAddress"
     );
