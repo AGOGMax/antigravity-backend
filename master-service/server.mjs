@@ -134,6 +134,35 @@ app.post("/api/generate-nft", async (req, res) => {
   }
 });
 
+app.get("/api/ag-metadata/:tokenId", async (req, res) => {
+  try {
+    const { tokenId } = req.params;
+    const { blockchain } = req.query;
+
+    const generateNftResponse = await axios.post(
+      "http://localhost:3000/api/generate-nft",
+      {
+        tokenId,
+        era: 2,
+        blockchain,
+      }
+    );
+    const nftUrl = generateNftResponse?.data?.url;
+
+    const metadata = {
+      description: secrets?.ERA_2_METADATA_DESCRIPTION,
+      external_url: secrets?.ERA_2_METADATA_EXTERNAL_URL,
+      image: `${nftUrl}`,
+      name: secrets?.ERA_2_METADATA_NAME,
+    };
+
+    res.json(metadata);
+  } catch (error) {
+    console.error(error);
+    res.status(500).send("Internal Server Error");
+  }
+});
+
 app.post("/api/predict-points", async (req, res) => {
   try {
     const { walletAddress, amount } = req.body;
