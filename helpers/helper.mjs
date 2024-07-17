@@ -103,28 +103,15 @@ const fetchEra1ContributorsFromS3 = async () => {
 };
 
 const generateEra2Points = async (contributions, blockchain) => {
-  const era1ContributionUsers = await fetchEra1ContributorsFromS3();
-
   let pointsList = [];
 
-  const timestampResponse = await axios.get(secrets?.TIMESTAMP_API_LINK);
-  const timestamps = timestampResponse.data?.result;
-
-  let rewardMultiplier = 1;
   contributions.forEach((contribution) => {
-    const multiplier = getMultiplier(contribution.timestamp, 2, timestamps);
-    if (
-      era1ContributionUsers.includes(contribution.walletAddress?.toLowerCase())
-    ) {
-      rewardMultiplier = secrets?.ERA_2_REWARD_MULTIPLIER || 2;
-    }
-
     pointsList.push({
       era: 2,
       walletAddress: contribution.walletAddress?.toLowerCase(),
       contributionId: contribution._id,
       multiplier,
-      points: contribution.darkXTokenAmount * multiplier * rewardMultiplier,
+      points: contribution.darkXTokenAmount,
       isGrantedByAdmin: false,
       blockchain,
     });
