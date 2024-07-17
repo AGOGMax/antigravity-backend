@@ -218,17 +218,15 @@ const modifyContributions = async (contributions, blockchain) => {
 
   for (const contribution of contributions) {
     try {
-      const tokenPriceAndPoolAddress = await fetchTokenPrice(
-        contribution?.contributionTokenAddress,
-        poolMapping,
-        blockchain,
-        contribution?.timestamp
-      );
+      // const tokenPriceAndPoolAddress = await fetchTokenPrice(
+      //   contribution?.contributionTokenAddress,
+      //   poolMapping,
+      //   blockchain,
+      //   contribution?.timestamp
+      // );
 
-      const contributionTokenUSDPrice =
-        tokenPriceAndPoolAddress?.price || secrets?.DEFAULT_TOKEN_PRICE_ERA_1;
-      const contributionTokenPoolAddress =
-        tokenPriceAndPoolAddress?.poolAddress;
+      const contributionTokenUSDPrice = secrets?.DEFAULT_TOKEN_PRICE_ERA_1;
+      const contributionTokenPoolAddress = "";
       const approxContributionValueInUSD =
         contributionTokenUSDPrice * contribution?.totalContributionTokenAmount;
 
@@ -267,29 +265,8 @@ export const fetchContributions = async (blockchain) => {
     dbContributions.map((contribution) => contribution.transactionHash)
   );
 
-  // const contributions = [...transactions, ...tokenTransfers];
-  const contributions = [
-    transactions[0],
-    transactions[1],
-    transactions[2],
-    transactions[3],
-    transactions[4],
-    transactions[5],
-    transactions[6],
-    transactions[7],
-    transactions[8],
-    transactions[9],
-    tokenTransfers[0],
-    tokenTransfers[1],
-    tokenTransfers[2],
-    tokenTransfers[3],
-    tokenTransfers[4],
-    tokenTransfers[5],
-    tokenTransfers[6],
-    tokenTransfers[7],
-    tokenTransfers[8],
-    tokenTransfers[9],
-  ];
+  const contributions = [...transactions, ...tokenTransfers];
+  console.log("debug, gg", contributions, dbTransactionHashes);
 
   const newContributions = contributions.filter(
     (contribution) => !dbTransactionHashes.has(contribution.transactionHash)
