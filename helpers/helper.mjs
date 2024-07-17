@@ -110,7 +110,6 @@ const generateEra2Points = async (contributions, blockchain) => {
       era: 2,
       walletAddress: contribution.walletAddress?.toLowerCase(),
       contributionId: contribution._id,
-      multiplier,
       points: contribution.darkXTokenAmount,
       isGrantedByAdmin: false,
       blockchain,
