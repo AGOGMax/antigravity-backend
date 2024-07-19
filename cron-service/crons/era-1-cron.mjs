@@ -294,6 +294,7 @@ export const fetchContributions = async (blockchain) => {
       walletAddress: contribution.walletAddress?.toLowerCase(),
       contributionId: contribution._id,
       multiplier,
+      approxContributionValueInUSD: contribution.approxContributionValueInUSD,
       points: contribution.approxContributionValueInUSD * multiplier,
       isGrantedByAdmin: false,
       blockchain: blockchain,
