@@ -42,7 +42,7 @@ app.use(cors(corsOptions));
 app.post("/api/leaderboard", async (req, res) => {
   try {
     const { walletAddress } = req.body;
-    const leaderboard = await fetchLeaderboard(walletAddress);
+    const leaderboard = await fetchLeaderboard(walletAddress?.toLowerCase());
     res.json(leaderboard);
   } catch (error) {
     console.error(error);
