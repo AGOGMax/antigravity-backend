@@ -12,6 +12,7 @@ const fetchEraPointsAndRankByWalletAddress = async (userWalletAddress) => {
       $group: {
         _id: "$era",
         totalPoints: { $sum: "$points" },
+        totalContributionValue: { $sum: "$approxContributionValueInUSD" },
       },
     },
   ]);
@@ -19,19 +20,26 @@ const fetchEraPointsAndRankByWalletAddress = async (userWalletAddress) => {
   let wishwellPoints = 0;
   let miningPoints = 0;
 
+  let wishwellValue = 0;
+  let miningValue = 0;
+
   points.forEach((doc) => {
     if (doc._id === 1) {
       wishwellPoints = doc.totalPoints;
+      wishwellValue = doc.totalContributionValue;
     } else if (doc._id === 2) {
       miningPoints = doc.totalPoints;
+      miningValue = doc.totalContributionValue;
     }
   });
 
   const totalPoints = wishwellPoints + miningPoints;
+  const pointsAverage = totalPoints / (wishwellValue + miningValue);
   return {
     wishwellPoints: wishwellPoints,
     miningPoints: miningPoints,
     totalPoints: totalPoints,
+    pointsAverage: pointsAverage,
     rank: getBadge(totalPoints),
   };
 };

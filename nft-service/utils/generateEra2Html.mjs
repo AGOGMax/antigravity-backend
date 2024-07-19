@@ -1,7 +1,8 @@
 import { createWriteStream, existsSync, mkdirSync } from "fs";
 
 const generateEra2Html = (htmlPayload, filename) => {
-  const { rank, wishwellPoints, miningPoints, totalPoints } = htmlPayload;
+  const { rank, wishwellPoints, miningPoints, totalPoints, pointsAverage } =
+    htmlPayload;
   const html = `<html><head>
         <style>
           @font-face {
@@ -170,7 +171,7 @@ const generateEra2Html = (htmlPayload, filename) => {
                 </div>
             </div>
             </div>
-            <p id="conversion_text">10 POINTS / $1</p>
+            <p id="conversion_text">${pointsAverage} POINTS / $1</p>
         </div>
         </div>
     </body>
