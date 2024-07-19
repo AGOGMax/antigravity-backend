@@ -13,9 +13,9 @@ export const invokeEra1Keeper = async () => {
 
   lambda.invoke(params, (err, data) => {
     if (err) {
-      console.error("Error invoking Lambda function", err);
+      console.error("Error invoking Era 1 Lambda function", err);
     } else {
-      console.log("Lambda function invoked successfully", data);
+      console.log("Era 1 Lambda function invoked successfully", data);
     }
   });
 };
