@@ -1,6 +1,9 @@
 import express from "express";
 import mongoose from "mongoose";
-import { fetchLeaderboard } from "./utils/leaderboard.mjs";
+import {
+  fetchLeaderboard,
+  fetchAllTimeLeaderboard,
+} from "./utils/leaderboard.mjs";
 import { fetchTokenPrice } from "./utils/price.mjs";
 import {
   enrollUserToNewsletter,
@@ -199,6 +202,16 @@ app.get("/api/era-2-points", async (req, res) => {
   try {
     const points = await fetchEra2Points();
     res.json({ points: points });
+  } catch (error) {
+    console.error(error);
+    res.status(500).send("Internal Server Error");
+  }
+});
+
+app.get("/api/all-time-leaderboard", async (req, res) => {
+  try {
+    const leaderboard = await fetchAllTimeLeaderboard("");
+    res.json(leaderboard);
   } catch (error) {
     console.error(error);
     res.status(500).send("Internal Server Error");

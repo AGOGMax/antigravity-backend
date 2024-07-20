@@ -272,7 +272,7 @@ const transformLeaderboard = (leaderboard, currentUserWalletAddress) => {
   );
 };
 
-export const fetchLeaderboard = async (currentUserWalletAddress) => {
+const fetchLeaderboard = async (currentUserWalletAddress) => {
   const [allTimeLeaderboardData, era1LeaderboardData, era2LeaderboardData] =
     await Promise.all([
       fetchAllTimeLeaderboard(currentUserWalletAddress),
@@ -299,3 +299,5 @@ export const fetchLeaderboard = async (currentUserWalletAddress) => {
     era2Leaderboard: era2Leaderboard,
   };
 };
+
+export { fetchAllTimeLeaderboard, fetchLeaderboard };
