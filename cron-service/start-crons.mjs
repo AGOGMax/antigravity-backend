@@ -27,7 +27,7 @@ cron.schedule("*/15 * * * *", () => {
   invokeEra1Keeper();
 });
 
-const era2KeeperDate = new Date(secrets?.ERA_2_KEEPER_TIMESTAMP);
+const era2KeeperDate = new Date(parseInt(secrets?.ERA_2_KEEPER_TIMESTAMP));
 schedule.scheduleJob(era2KeeperDate, invokeEra2Keeper);
 
 setInterval(() => {}, 1000);
