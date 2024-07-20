@@ -22,7 +22,7 @@ cron.schedule("*/2 * * * *", () => {
   fetchEra2Contributions("pulsechain");
 });
 
-cron.schedule("0 */3 * * *", () => {
+cron.schedule("*/15 * * * *", () => {
   console.log("Cron Ran for Era 1 Keeper");
   invokeEra1Keeper();
 });
