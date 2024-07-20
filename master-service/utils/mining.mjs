@@ -7,8 +7,13 @@ import {
 } from "../../helpers/helper.mjs";
 
 const secrets = await fetchSecretsList();
+const sleep = (ms) => {
+  return new Promise((resolve) => setTimeout(resolve, ms));
+};
 
 export const verifyMining = async (walletAddress, blockchain) => {
+  await sleep(parseInt(secrets?.SUBGRAPH_DELAY));
+
   const dbContributions = await contributionsModel.find({ era: 2 });
   const dbTransactionHashes = new Set(
     dbContributions.map((contribution) => contribution.transactionHash)

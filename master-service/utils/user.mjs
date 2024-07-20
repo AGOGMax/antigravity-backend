@@ -80,6 +80,10 @@ const fetchUserFromSubgraph = async (walletAddress, blockchain, era) => {
     : userData?.antigravity?.tokenId;
 };
 
+const sleep = (ms) => {
+  return new Promise((resolve) => setTimeout(resolve, ms));
+};
+
 const checkOrCreateUser = async (walletAddress) => {
   let user = await usersModel.findOne({
     walletAddress: walletAddress?.toLowerCase(),
@@ -90,6 +94,7 @@ const checkOrCreateUser = async (walletAddress) => {
 
   await user.save();
 
+  await sleep(parseInt(secrets?.SUBGRAPH_DELAY));
   const tokenIdPromises = [];
   if (!user.wishwellBaseTokenId) {
     tokenIdPromises.push(
