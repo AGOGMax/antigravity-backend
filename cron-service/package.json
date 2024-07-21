@@ -4,6 +4,8 @@
   "description": "",
   "main": "start-crons.mjs",
   "dependencies": {
+    "@sentry/node": "^8.19.0",
+    "@sentry/profiling-node": "^8.19.0",
     "aws-sdk": "^2.1659.0",
     "axios": "^1.7.2",
     "googleapis": "^140.0.0",

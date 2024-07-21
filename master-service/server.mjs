@@ -39,6 +39,13 @@ Sentry.init({
   profilesSampleRate: 1.0,
 });
 
+const captureErrorWithContext = (error, contextMessage) => {
+  Sentry.withScope((scope) => {
+    scope.setExtra("contextMessage", contextMessage);
+    Sentry.captureException(error);
+  });
+};
+
 app.use(express.json());
 app.use(cors(corsOptions));
 
@@ -48,7 +55,8 @@ app.post("/api/leaderboard", async (req, res) => {
     const leaderboard = await fetchLeaderboard(walletAddress?.toLowerCase());
     res.json(leaderboard);
   } catch (error) {
-    console.error(error);
+    console.error(`Master Service: Leaderboard Error: ${error}`);
+    captureErrorWithContext(error, "Master Service: Leaderboard Error");
     res.status(500).send("Internal Server Error");
   }
 });
@@ -64,7 +72,8 @@ app.post("/api/token-price", async (req, res) => {
     );
     res.json(price);
   } catch (error) {
-    console.error(error);
+    console.error(`Master Service: Token Price Error: ${error}`);
+    captureErrorWithContext(error, "Master Service: Token Price Error");
     res.status(500).send("Internal Server Error");
   }
 });
@@ -75,7 +84,8 @@ app.post("/api/newsletter", async (req, res) => {
     const newsletter = await enrollUserToNewsletter(name, email);
     res.json(newsletter);
   } catch (error) {
-    console.error(error);
+    console.error(`Master Service: Newsletter Enroll Error: ${error}`);
+    captureErrorWithContext(error, "Master Service: Newsletter Enroll Error");
     res.status(500).send("Internal Server Error");
   }
 });
@@ -85,7 +95,8 @@ app.get("/api/newsletter", async (req, res) => {
     const enrollments = await fetchNewsletterEnrollments();
     res.json(enrollments);
   } catch (error) {
-    console.error(error);
+    console.error(`Master Service: Newsletter Fetch Error: ${error}`);
+    captureErrorWithContext(error, "Master Service: Newsletter Fetch Error");
     res.status(500).send("Internal Server Error");
   }
 });
@@ -96,7 +107,8 @@ app.post("/api/user", async (req, res) => {
     const user = await checkOrCreateUser(walletAddress);
     res.json(user);
   } catch (error) {
-    console.error(error);
+    console.error(`Master Service: User API Error: ${error}`);
+    captureErrorWithContext(error, "Master Service: User API Error");
     res.status(500).send("Internal Server Error");
   }
 });
@@ -107,7 +119,8 @@ app.post("/api/verify-mining", async (req, res) => {
     const miningStatus = await verifyMining(walletAddress, blockchain);
     res.json(miningStatus);
   } catch (error) {
-    console.error(error);
+    console.error(`Master Service: Verify Mining Error: ${error}`);
+    captureErrorWithContext(error, "Master Service: Verify Mining Error");
     res.status(500).send("Internal Server Error");
   }
 });
@@ -132,7 +145,8 @@ app.post("/api/generate-nft", async (req, res) => {
 
     res.json(response.data);
   } catch (error) {
-    console.error(error);
+    console.error(`Master Service: Generate NFT Error: ${error}`);
+    captureErrorWithContext(error, "Master Service: Generate NFT Error");
     res.status(500).send("Internal Server Error");
   }
 });
@@ -161,7 +175,8 @@ app.get("/api/ag-metadata/:tokenId", async (req, res) => {
 
     res.json(metadata);
   } catch (error) {
-    console.error(error);
+    console.error(`Master Service: NFT Metadata Error: ${error}`);
+    captureErrorWithContext(error, "Master Service: NFT Metadata Error");
     res.status(500).send("Internal Server Error");
   }
 });
@@ -172,7 +187,8 @@ app.post("/api/predict-points", async (req, res) => {
     const points = await predictEra2Points(walletAddress, amount);
     res.json({ points: points });
   } catch (error) {
-    console.error(error);
+    console.error(`Master Service: Predict Points Error: ${error}`);
+    captureErrorWithContext(error, "Master Service: Predict Points Error");
     res.status(500).send("Internal Server Error");
   }
 });
@@ -183,7 +199,8 @@ app.post("/api/total-points", async (req, res) => {
     const points = await fetchTotalPoints(walletAddress);
     res.json({ points: points });
   } catch (error) {
-    console.error(error);
+    console.error(`Master Service: Total Points Error: ${error}`);
+    captureErrorWithContext(error, "Master Service: Total Points Error");
     res.status(500).send("Internal Server Error");
   }
 });
@@ -193,7 +210,8 @@ app.get("/api/era-1-contributors", async (req, res) => {
     const contributors = await fetchEra1Contributors();
     res.json({ contributors: contributors });
   } catch (error) {
-    console.error(error);
+    console.error(`Master Service: Era 1 Contributors Error: ${error}`);
+    captureErrorWithContext(error, "Master Service: Era 1 Contributors Error");
     res.status(500).send("Internal Server Error");
   }
 });
@@ -203,7 +221,8 @@ app.get("/api/era-2-points", async (req, res) => {
     const points = await fetchEra2Points();
     res.json({ points: points });
   } catch (error) {
-    console.error(error);
+    console.error(`Master Service: Era 2 Points Error: ${error}`);
+    captureErrorWithContext(error, "Master Service: Era 2 Points Error");
     res.status(500).send("Internal Server Error");
   }
 });
@@ -213,7 +232,11 @@ app.get("/api/all-time-leaderboard", async (req, res) => {
     const leaderboard = await fetchAllTimeLeaderboard("");
     res.json(leaderboard);
   } catch (error) {
-    console.error(error);
+    console.error(`Master Service: All Time Leaderboard Error: ${error}`);
+    captureErrorWithContext(
+      error,
+      "Master Service: All Time Leaderboard Error"
+    );
     res.status(500).send("Internal Server Error");
   }
 });

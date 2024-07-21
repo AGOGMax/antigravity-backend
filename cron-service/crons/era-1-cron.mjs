@@ -4,6 +4,7 @@ import { fetchSecretsList } from "../../secrets-manager/secrets-manager.mjs";
 import isEmpty from "lodash/isEmpty.js";
 import { getMultiplier } from "../../helpers/helper.mjs";
 import { contributionsModel, pointsModel } from "../models/models.mjs";
+import { captureErrorWithContext } from "../start-crons.mjs";
 
 const secrets = await fetchSecretsList();
 
@@ -239,8 +240,12 @@ const modifyContributions = async (contributions, blockchain) => {
         blockchain: blockchain,
       });
     } catch (error) {
-      console.log(
-        `Error while fetching token ${contribution?.contributionTokenAddress}: ${error}`
+      console.error(
+        `Cron Service: Error while fetching token ${contribution?.contributionTokenAddress}: ${error}`
+      );
+      captureErrorWithContext(
+        error,
+        `Cron Service: Error while fetching token ${contribution?.contributionTokenAddress}`
       );
     }
     await sleep(500);
