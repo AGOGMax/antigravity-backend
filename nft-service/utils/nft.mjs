@@ -8,6 +8,7 @@ import { dirname } from "path";
 import { unlink } from "fs";
 import path from "path";
 import generateEra2Html from "./generateEra2Html.mjs";
+import { captureErrorWithContext } from "../server.mjs";
 
 const s3 = new AWS.S3();
 const secrets = await fetchSecretsList();
@@ -26,14 +27,15 @@ const fetchNFTFromS3 = async (filename) => {
     const url = `https://${bucketName}.s3.${regionName}.amazonaws.com/${params.Key}`;
     return url;
   } catch (error) {
-    console.error("Error fetching file from S3:", error);
+    console.error("NFT Service: Error fetching file from S3:", error);
+    captureErrorWithContext(error, "NFT Service: Error fetching file from S3");
     return null;
   }
 };
 
 const generateNFTBuffer = async (filename) => {
   const browser = await puppeteer.launch({
-    executablePath: "/usr/bin/google-chrome",
+    // executablePath: "/usr/bin/google-chrome",
     args: ["--no-sandbox", "--disable-web-security"],
     defaultViewport: null,
   });
@@ -83,7 +85,8 @@ const uploadNftToS3 = async (imageBuffer, filename) => {
     );
     console.log("File URL: ", url);
   } catch (err) {
-    console.log("Error uploading data: ", err);
+    console.log("NFT Service: Error uploading data: ", err);
+    captureErrorWithContext(error, "NFT Service: Error uploading data");
   }
   return url;
 };
@@ -94,12 +97,34 @@ export const fetchNFT = async (nftPayload, filename) => {
   if (!isEmpty(s3NftUrl)) {
     return s3NftUrl;
   } else {
-    if (nftPayload.era === 1) {
-      generateEra1Html(nftPayload, filename);
-    } else if (nftPayload.era === 2) {
-      generateEra2Html(nftPayload, filename);
+    try {
+      if (nftPayload.era === 1) {
+        await generateEra1Html(nftPayload, filename);
+      } else if (nftPayload.era === 2) {
+        await generateEra2Html(nftPayload, filename);
+      }
+    } catch (error) {
+      console.error(
+        `NFT Service: Error while generating era ${nftPayload.era} HTML: ${error}`
+      );
+      captureErrorWithContext(
+        error,
+        `NFT Service: Error while generating era ${nftPayload.era} HTML`
+      );
     }
-    const nftBuffer = await generateNFTBuffer(filename);
+    let nftBuffer = "";
+    try {
+      nftBuffer = await generateNFTBuffer(filename);
+    } catch (error) {
+      console.error(
+        `NFT Service: Error while generating NFT from HTML: ${error}`
+      );
+      captureErrorWithContext(
+        error,
+        "NFT Service: Error while generating NFT from HTML"
+      );
+    }
+
     const generatedNftUrl = await uploadNftToS3(nftBuffer, filename);
     return generatedNftUrl;
   }
