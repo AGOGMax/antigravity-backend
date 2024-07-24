@@ -219,15 +219,16 @@ const modifyContributions = async (contributions, blockchain) => {
 
   for (const contribution of contributions) {
     try {
-      // const tokenPriceAndPoolAddress = await fetchTokenPrice(
-      //   contribution?.contributionTokenAddress,
-      //   poolMapping,
-      //   blockchain,
-      //   contribution?.timestamp
-      // );
+      const tokenPriceAndPoolAddress = await fetchTokenPrice(
+        contribution?.contributionTokenAddress,
+        poolMapping,
+        blockchain,
+        contribution?.timestamp
+      );
 
-      const contributionTokenUSDPrice = secrets?.DEFAULT_TOKEN_PRICE_ERA_1;
-      const contributionTokenPoolAddress = "";
+      const contributionTokenUSDPrice = tokenPriceAndPoolAddress?.price || 0;
+      const contributionTokenPoolAddress =
+        tokenPriceAndPoolAddress?.poolAddress;
       const approxContributionValueInUSD =
         contributionTokenUSDPrice * contribution?.totalContributionTokenAmount;
 
