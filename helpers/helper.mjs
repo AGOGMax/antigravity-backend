@@ -77,6 +77,28 @@ const modifyEra2Contributions = (contributions, blockchain) => {
   return modifiedContributions;
 };
 
+const predictMultiplier = async (walletAddress, era) => {
+  const era1ContributionUsers = await fetchEra1ContributorsFromS3();
+
+  const timestampResponse = await axios.get(secrets?.TIMESTAMP_API_LINK);
+  const timestamps = timestampResponse.data?.result;
+
+  let rewardMultiplier = 1;
+  const multiplier = getMultiplier(
+    Math.floor(Date.now() / 1000),
+    parseInt(era),
+    timestamps
+  );
+
+  if (
+    era1ContributionUsers.includes(walletAddress?.toLowerCase()) &&
+    era === 2
+  ) {
+    rewardMultiplier = secrets?.ERA_2_REWARD_MULTIPLIER || 2;
+  }
+  return multiplier * rewardMultiplier;
+};
+
 const predictEra2Points = async (walletAddress, amount) => {
   const era1ContributionUsers = await fetchEra1ContributorsFromS3();
 
@@ -137,4 +159,5 @@ export {
   getMultiplier,
   getBadge,
   predictEra2Points,
+  predictMultiplier,
 };

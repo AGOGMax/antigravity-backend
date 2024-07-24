@@ -13,7 +13,7 @@ import { checkOrCreateUser, fetchTotalPoints } from "./utils/user.mjs";
 import { verifyMining } from "./utils/mining.mjs";
 import { fetchSecretsList } from "../secrets-manager/secrets-manager.mjs";
 import { generateNFTPayload } from "./utils/nft.mjs";
-import { predictEra2Points } from "../helpers/helper.mjs";
+import { predictEra2Points, predictMultiplier } from "../helpers/helper.mjs";
 import axios from "axios";
 import cors from "cors";
 import {
@@ -189,6 +189,18 @@ app.post("/api/predict-points", async (req, res) => {
   } catch (error) {
     console.error(`Master Service: Predict Points Error: ${error}`);
     captureErrorWithContext(error, "Master Service: Predict Points Error");
+    res.status(500).send("Internal Server Error");
+  }
+});
+
+app.post("/api/predict-multiplier", async (req, res) => {
+  try {
+    const { walletAddress, era } = req.body;
+    const multiplier = await predictMultiplier(walletAddress, era);
+    res.json({ multiplier: multiplier });
+  } catch (error) {
+    console.error(`Master Service: Predict Multiplier Error: ${error}`);
+    captureErrorWithContext(error, "Master Service: Predict Multiplier Error");
     res.status(500).send("Internal Server Error");
   }
 });
