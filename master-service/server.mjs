@@ -151,10 +151,56 @@ app.post("/api/generate-nft", async (req, res) => {
   }
 });
 
+app.get("/api/metadata/:tokenId", async (req, res) => {
+  try {
+    const { tokenId } = req.params;
+    const { blockchain } = req.query;
+
+    const nftPayload = await generateNFTPayload(tokenId, 1, blockchain);
+
+    const generateNftResponse = await axios.post(
+      "http://localhost:3000/api/generate-nft",
+      {
+        tokenId,
+        era: 1,
+        blockchain,
+      }
+    );
+    const nftUrl = generateNftResponse?.data?.url;
+
+    const metadata = {
+      description: process.env.ERA_1_METADATA_DESCRIPTION,
+      external_url: process.env.ERA_1_METADATA_EXTERNAL_URL,
+      image: nftUrl,
+      name: process.env.ERA_1_METADATA_NAME,
+      attributes: [
+        nftPayload?.transactions?.map((transaction) => {
+          return {
+            trait_type: transaction?.contributionTokenSymbol,
+            value: transaction?.totalContributionTokenAmount,
+          };
+        }),
+        {
+          trait_type: "Points",
+          value: nftPayload.totalPoints,
+        },
+      ],
+    };
+
+    res.json(metadata);
+  } catch (error) {
+    console.error(`Master Service: Era 1 NFT Metadata Error: ${error}`);
+    captureErrorWithContext(error, "Master Service: Era 1 NFT Metadata Error");
+    res.status(500).send("Internal Server Error");
+  }
+});
+
 app.get("/api/ag-metadata/:tokenId", async (req, res) => {
   try {
     const { tokenId } = req.params;
     const { blockchain } = req.query;
+
+    const nftPayload = await generateNFTPayload(tokenId, 2, blockchain);
 
     const generateNftResponse = await axios.post(
       "http://localhost:3000/api/generate-nft",
@@ -171,12 +217,22 @@ app.get("/api/ag-metadata/:tokenId", async (req, res) => {
       external_url: secrets?.ERA_2_METADATA_EXTERNAL_URL,
       image: `${nftUrl}`,
       name: secrets?.ERA_2_METADATA_NAME,
+      attributes: [
+        {
+          trait_type: "Rank",
+          value: nftPayload.rank,
+        },
+        {
+          trait_type: "Total Points",
+          value: nftPayload.totalPoints,
+        },
+      ],
     };
 
     res.json(metadata);
   } catch (error) {
-    console.error(`Master Service: NFT Metadata Error: ${error}`);
-    captureErrorWithContext(error, "Master Service: NFT Metadata Error");
+    console.error(`Master Service: Era 2 NFT Metadata Error: ${error}`);
+    captureErrorWithContext(error, "Master Service: Era 2 NFT Metadata Error");
     res.status(500).send("Internal Server Error");
   }
 });
