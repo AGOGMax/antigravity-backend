@@ -169,10 +169,10 @@ app.get("/api/metadata/:tokenId", async (req, res) => {
     const nftUrl = generateNftResponse?.data?.url;
 
     const metadata = {
-      description: process.env.ERA_1_METADATA_DESCRIPTION,
-      external_url: process.env.ERA_1_METADATA_EXTERNAL_URL,
+      description: secrets?.ERA_1_METADATA_DESCRIPTION,
+      external_url: secrets?.ERA_1_METADATA_EXTERNAL_URL,
       image: nftUrl,
-      name: process.env.ERA_1_METADATA_NAME,
+      name: secrets?.ERA_1_METADATA_NAME,
       attributes: [
         nftPayload?.transactions?.map((transaction) => {
           return {
