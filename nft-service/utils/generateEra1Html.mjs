@@ -158,7 +158,7 @@ const generateEra1Html = (htmlPayload, filename) => {
                       </div>
                       <div>
                           <p class="total_heading">TOTAL POINTS</p>
-                          <p class="total_value">${totalPoints}</p>
+                          <p class="total_value">${totalPoints || 0}</p>
                       </div>
                       </div>
                   </div>
