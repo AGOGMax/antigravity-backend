@@ -16,7 +16,7 @@ export const fetchContributions = async (blockchain) => {
 
   const contributionsQuery = `
     query MyQuery {
-      mines {
+      mines(orderBy: timestamp, orderDirection: desc) {
         amount
         token
         tokenInvested
