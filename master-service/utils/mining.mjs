@@ -21,7 +21,7 @@ export const verifyMining = async (walletAddress, blockchain) => {
 
   const contributionsQuery = `
   query MyQuery {
-    mines(where: {user_: {address: "${walletAddress}"}}) {
+    mines(orderBy: timestamp, orderDirection: desc, where: {user_: {address: "${walletAddress}"}}) {
       amount
       token
       tokenInvested
