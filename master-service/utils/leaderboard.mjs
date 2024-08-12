@@ -273,12 +273,17 @@ const transformLeaderboard = (leaderboard, currentUserWalletAddress) => {
 };
 
 const fetchLeaderboard = async (currentUserWalletAddress) => {
-  const [allTimeLeaderboardData, era1LeaderboardData, era2LeaderboardData] =
-    await Promise.all([
-      fetchAllTimeLeaderboard(currentUserWalletAddress),
-      fetchEraWiseLeaderboard(1, currentUserWalletAddress),
-      fetchEraWiseLeaderboard(2, currentUserWalletAddress),
-    ]);
+  const [
+    allTimeLeaderboardData,
+    era1LeaderboardData,
+    era2LeaderboardData,
+    era3LeaderboardData,
+  ] = await Promise.all([
+    fetchAllTimeLeaderboard(currentUserWalletAddress),
+    fetchEraWiseLeaderboard(1, currentUserWalletAddress),
+    fetchEraWiseLeaderboard(2, currentUserWalletAddress),
+    fetchEraWiseLeaderboard(3, currentUserWalletAddress),
+  ]);
 
   const allTimeLeaderboard = transformLeaderboard(
     allTimeLeaderboardData,
@@ -292,11 +297,16 @@ const fetchLeaderboard = async (currentUserWalletAddress) => {
     era2LeaderboardData,
     currentUserWalletAddress
   );
+  const era3Leaderboard = transformLeaderboard(
+    era3LeaderboardData,
+    currentUserWalletAddress
+  );
 
   return {
     allTimeLeaderboard: allTimeLeaderboard,
     era1Leaderboard: era1Leaderboard,
     era2Leaderboard: era2Leaderboard,
+    era3Leaderboard: era3Leaderboard,
   };
 };
 

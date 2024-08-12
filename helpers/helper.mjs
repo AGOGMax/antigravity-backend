@@ -77,6 +77,19 @@ const modifyEra2Contributions = (contributions, blockchain) => {
   return modifiedContributions;
 };
 
+const modifyEra3Contributions = (contributions) => {
+  const modifiedContributions = contributions.map((contribution) => {
+    return {
+      era: 3,
+      walletAddress: contribution.user?.address?.toLowerCase(),
+      transactionHash: contribution.transactionHash,
+      timestamp: contribution.timestamp,
+      fuelCellsAmount: contribution.amount,
+    };
+  });
+  return modifiedContributions;
+};
+
 const predictMultiplier = async (walletAddress, era) => {
   const era1ContributionUsers = await fetchEra1ContributorsFromS3();
 
@@ -153,11 +166,58 @@ const generateEra2Points = async (contributions, blockchain) => {
   return pointsList;
 };
 
+const getEra3Multiplier = (currentJourney) => {
+  if (currentJourney === 1) return 33;
+  else if (currentJourney === 2) return 22;
+  else return 11;
+};
+
+const generateEra3Points = async (
+  contributions,
+  era2Contributors,
+  currentJourney
+) => {
+  const era1ContributionUsers = await fetchEra1ContributorsFromS3();
+  let pointsList = [];
+
+  let rewardMultiplier = 1;
+  contributions.forEach((contribution) => {
+    const multiplier = getEra3Multiplier(currentJourney);
+    if (
+      era1ContributionUsers.includes(
+        contribution.walletAddress?.toLowerCase()
+      ) &&
+      era2Contributors.includes(contribution.walletAddress?.toLowerCase())
+    ) {
+      rewardMultiplier = secrets?.ERA_3_REWARD_MULTIPLIER_PREVIOUS_BOTH || 4;
+    } else if (
+      era1ContributionUsers.includes(
+        contribution.walletAddress?.toLowerCase()
+      ) ||
+      era2Contributors.includes(contribution.walletAddress?.toLowerCase())
+    ) {
+      rewardMultiplier = secrets?.ERA_3_REWARD_MULTIPLIER_PREVIOUS_ONE || 2;
+    }
+    pointsList.push({
+      era: 3,
+      walletAddress: contribution.walletAddress?.toLowerCase(),
+      contributionId: contribution._id,
+      points: contribution.fuelCellsAmount * multiplier * rewardMultiplier,
+      isGrantedByAdmin: false,
+    });
+  });
+  return pointsList;
+};
+
 export {
   modifyEra2Contributions,
+  modifyEra3Contributions,
   generateEra2Points,
+  generateEra3Points,
   getMultiplier,
+  getEra3Multiplier,
   getBadge,
   predictEra2Points,
   predictMultiplier,
+  fetchEra1ContributorsFromS3,
 };

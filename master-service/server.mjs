@@ -22,6 +22,8 @@ import {
 } from "./utils/contributions.mjs";
 import * as Sentry from "@sentry/node";
 import { nodeProfilingIntegration } from "@sentry/profiling-node";
+import { fetchEra3TimestampsAndMultipliers } from "./utils/timestamps.mjs";
+import { verifyMinting } from "./utils/minting.mjs";
 
 const secrets = await fetchSecretsList();
 
@@ -121,6 +123,18 @@ app.post("/api/verify-mining", async (req, res) => {
   } catch (error) {
     console.error(`Master Service: Verify Mining Error: ${error}`);
     captureErrorWithContext(error, "Master Service: Verify Mining Error");
+    res.status(500).send("Internal Server Error");
+  }
+});
+
+app.post("/api/verify-minting", async (req, res) => {
+  try {
+    const { walletAddress } = req.body;
+    const mintingStatus = await verifyMinting(walletAddress);
+    res.json(mintingStatus);
+  } catch (error) {
+    console.error(`Master Service: Verify Minting Error: ${error}`);
+    captureErrorWithContext(error, "Master Service: Verify Minting Error");
     res.status(500).send("Internal Server Error");
   }
 });
@@ -304,6 +318,21 @@ app.get("/api/all-time-leaderboard", async (req, res) => {
     captureErrorWithContext(
       error,
       "Master Service: All Time Leaderboard Error"
+    );
+    res.status(500).send("Internal Server Error");
+  }
+});
+
+app.get("/api/era-3-timestamps-multipliers", async (req, res) => {
+  try {
+    const { walletAddress } = req.body;
+    const response = await fetchEra3TimestampsAndMultipliers(walletAddress);
+    res.json(response);
+  } catch (error) {
+    console.error(`Master Service: Era 3 Timestamps and Multipliers: ${error}`);
+    captureErrorWithContext(
+      error,
+      "Master Service: Era 3 Timestamps and Multipliers"
     );
     res.status(500).send("Internal Server Error");
   }

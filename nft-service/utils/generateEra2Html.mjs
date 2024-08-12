@@ -1,8 +1,14 @@
 import { createWriteStream, existsSync, mkdirSync } from "fs";
 
 const generateEra2Html = (htmlPayload, filename) => {
-  const { rank, wishwellPoints, miningPoints, totalPoints, pointsAverage } =
-    htmlPayload;
+  const {
+    rank,
+    wishwellPoints,
+    miningPoints,
+    mintingPoints,
+    totalPoints,
+    pointsAverage,
+  } = htmlPayload;
   const html = `<html>
   <head>
     <style>
@@ -255,6 +261,13 @@ const generateEra2Html = (htmlPayload, filename) => {
           <p class="points">
             <!-- Replace with actual value -->
             ${miningPoints}
+          </p>
+        </div>
+        <div class="section">
+          <p class="section-title">Minting Era Points</p>
+          <p class="points">
+            <!-- Replace with actual value -->
+            ${mintingPoints}
           </p>
         </div>
         <div class="section">

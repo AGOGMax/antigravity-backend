@@ -2,6 +2,8 @@ import * as cron from "node-cron";
 import mongoose from "mongoose";
 import { fetchContributions as fetchEra1Contributions } from "./crons/era-1-cron.mjs";
 import { fetchContributions as fetchEra2Contributions } from "./crons/era-2-cron.mjs";
+import { fetchContributions as fetchEra3Contributions } from "./crons/era-3-cron.mjs";
+import { updateTimestampsFromContract } from "./crons/era-3-cron.mjs";
 import { invokeEra1Keeper } from "./crons/era-1-keeper.mjs";
 import { invokeEra2Keeper } from "./crons/era-2-keeper.mjs";
 import { fetchSecretsList } from "../secrets-manager/secrets-manager.mjs";
@@ -41,6 +43,16 @@ cron.schedule("*/2 * * * *", () => {
 cron.schedule("*/15 * * * *", () => {
   console.log("Cron Ran for Era 1 Keeper");
   invokeEra1Keeper();
+});
+
+cron.schedule("0 */6 * * *", () => {
+  console.log("Cron Ran for Era 3 Timestamps from Contract");
+  updateTimestampsFromContract();
+});
+
+cron.schedule("*/2 * * * *", () => {
+  console.log("Cron Ran for Era-3");
+  fetchEra3Contributions();
 });
 
 const era2KeeperDate = new Date(parseInt(secrets?.ERA_2_KEEPER_TIMESTAMP));

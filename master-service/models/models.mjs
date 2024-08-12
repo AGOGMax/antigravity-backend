@@ -11,4 +11,7 @@ const pointsModel = model("points", pointsSchema);
 const usersSchema = new Schema({}, { strict: false });
 const usersModel = model("users", usersSchema);
 
-export { contributionsModel, pointsModel, usersModel };
+const era3TimetampsSchema = new Schema({}, { strict: false });
+const era3TimestampsModel = model("era3Timestamps", era3TimetampsSchema);
+
+export { contributionsModel, pointsModel, usersModel, era3TimestampsModel };

@@ -19,9 +19,11 @@ const fetchEraPointsAndRankByWalletAddress = async (userWalletAddress) => {
 
   let wishwellPoints = 0;
   let miningPoints = 0;
+  let mintingPoints = 0;
 
   let wishwellValue = 0;
   let miningValue = 0;
+  let mintingValue = 0;
 
   points.forEach((doc) => {
     if (doc._id === 1) {
@@ -30,14 +32,19 @@ const fetchEraPointsAndRankByWalletAddress = async (userWalletAddress) => {
     } else if (doc._id === 2) {
       miningPoints = doc.totalPoints;
       miningValue = doc.totalContributionValue;
+    } else if (doc._id === 3) {
+      mintingPoints = doc.totalPoints;
+      mintingValue = 0;
     }
   });
 
-  const totalPoints = wishwellPoints + miningPoints;
-  const pointsAverage = totalPoints / (wishwellValue + miningValue);
+  const totalPoints = wishwellPoints + miningPoints + mintingPoints;
+  const pointsAverage =
+    totalPoints / (wishwellValue + miningValue + mintingValue);
   return {
     wishwellPoints: wishwellPoints,
     miningPoints: miningPoints,
+    mintingPoints: mintingPoints,
     totalPoints: totalPoints,
     pointsAverage: pointsAverage,
     rank: getBadge(totalPoints),
