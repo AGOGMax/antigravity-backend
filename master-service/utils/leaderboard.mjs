@@ -2,8 +2,8 @@ import { pointsModel } from "../models/models.mjs";
 import { getBadge } from "../../helpers/helper.mjs";
 import isEmpty from "lodash/isEmpty.js";
 
-const fetchAllTimeLeaderboard = async (currentUserWalletAddress) => {
-  const topUsers = await pointsModel.aggregate([
+const fetchAllTimeLeaderboard = async (currentUserWalletAddress, limit) => {
+  let pipeline = [
     {
       $group: {
         _id: "$walletAddress",
@@ -24,9 +24,6 @@ const fetchAllTimeLeaderboard = async (currentUserWalletAddress) => {
       },
     },
     {
-      $limit: 10,
-    },
-    {
       $project: {
         _id: 0,
         walletAddress: "$_id",
@@ -34,7 +31,12 @@ const fetchAllTimeLeaderboard = async (currentUserWalletAddress) => {
         rank: 1,
       },
     },
-  ]);
+  ];
+
+  if (limit) {
+    pipeline.push({ $limit: limit });
+  }
+  const topUsers = await pointsModel.aggregate(pipeline);
 
   const isCurrentUserInTopUsers = topUsers.some(
     (item) =>
@@ -279,7 +281,7 @@ const fetchLeaderboard = async (currentUserWalletAddress) => {
     era2LeaderboardData,
     era3LeaderboardData,
   ] = await Promise.all([
-    fetchAllTimeLeaderboard(currentUserWalletAddress),
+    fetchAllTimeLeaderboard(currentUserWalletAddress, 10),
     fetchEraWiseLeaderboard(1, currentUserWalletAddress),
     fetchEraWiseLeaderboard(2, currentUserWalletAddress),
     fetchEraWiseLeaderboard(3, currentUserWalletAddress),
