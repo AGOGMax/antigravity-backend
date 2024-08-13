@@ -39,8 +39,12 @@ const fetchEraPointsAndRankByWalletAddress = async (userWalletAddress) => {
   });
 
   const totalPoints = wishwellPoints + miningPoints + mintingPoints;
-  const pointsAverage =
-    totalPoints / (wishwellValue + miningValue + mintingValue);
+
+  const totalValue = wishwellValue + miningValue + mintingValue;
+  let pointsAverage = 0;
+  if (totalValue !== 0) {
+    pointsAverage = totalPoints / totalValue;
+  }
   return {
     wishwellPoints: wishwellPoints,
     miningPoints: miningPoints,

@@ -61,6 +61,7 @@ export const fetchContributions = async () => {
           id
           timestamp
           transactionHash
+          journeyId
           user {
             address
           }
@@ -105,16 +106,9 @@ export const fetchContributions = async () => {
     (contribution) => contribution._id
   );
 
-  const era3Timestamps = await era3TimestampsModel.findOne({
-    identifier: "era3Timestamps",
-  });
-
-  const currentJourney = era3Timestamps?.currentJourney;
-
   const pointsList = await generateEra3Points(
     insertedContributions,
-    era2Contributors,
-    currentJourney
+    era2Contributors
   );
   console.log("Era 3 Points List: ", pointsList);
 

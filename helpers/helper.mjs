@@ -85,6 +85,7 @@ const modifyEra3Contributions = (contributions) => {
       transactionHash: contribution.transactionHash,
       timestamp: contribution.timestamp,
       fuelCellsAmount: contribution.amount,
+      journeyId: parseInt(contribution.journeyId),
     };
   });
   return modifiedContributions;
@@ -169,20 +170,17 @@ const generateEra2Points = async (contributions, blockchain) => {
 const getEra3Multiplier = (currentJourney) => {
   if (currentJourney === 1) return 33;
   else if (currentJourney === 2) return 22;
-  else return 11;
+  else if (currentJourney === 3) return 11;
+  else return 1;
 };
 
-const generateEra3Points = async (
-  contributions,
-  era2Contributors,
-  currentJourney
-) => {
+const generateEra3Points = async (contributions, era2Contributors) => {
   const era1ContributionUsers = await fetchEra1ContributorsFromS3();
   let pointsList = [];
 
   let rewardMultiplier = 1;
   contributions.forEach((contribution) => {
-    const multiplier = getEra3Multiplier(currentJourney);
+    const multiplier = getEra3Multiplier(contribution?.journeyId);
     if (
       era1ContributionUsers.includes(
         contribution.walletAddress?.toLowerCase()

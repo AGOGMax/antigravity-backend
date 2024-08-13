@@ -141,8 +141,13 @@ app.post("/api/verify-minting", async (req, res) => {
 
 app.post("/api/generate-nft", async (req, res) => {
   try {
-    const { tokenId, era, blockchain } = req.body;
-    const nftPayload = await generateNFTPayload(tokenId, era, blockchain);
+    const { tokenId, era, blockchain, walletAddress } = req.body;
+    const nftPayload = await generateNFTPayload(
+      tokenId,
+      era,
+      blockchain,
+      walletAddress
+    );
     const nftFileName =
       era === 1
         ? `${nftPayload?.userWalletAddress}_${era}_${nftPayload?.totalPoints
