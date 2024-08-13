@@ -1,5 +1,17 @@
 import { createWriteStream, existsSync, mkdirSync } from "fs";
 
+function formattingNumber(number) {
+  function USAbasedNumbering(number) {
+    return parseInt(number).toLocaleString("en-US");
+  }
+  const stringNumber = String(number);
+  if (stringNumber !== "" && stringNumber.includes(".")) {
+    const [integer, decimal] = stringNumber.split(".");
+    return `${USAbasedNumbering(integer)}.<small>${decimal}</small>`;
+  }
+  return USAbasedNumbering(number);
+}
+
 const generateEra2Html = (htmlPayload, filename) => {
   const {
     rank,
@@ -12,203 +24,201 @@ const generateEra2Html = (htmlPayload, filename) => {
   const html = `<html>
   <head>
     <style>
-      * {
-        font-family: "Cabinet Grotesk", sans-serif;
-        margin: 0;
-        padding: 0;
-        box-sizing: border-box;
-      }
-      @font-face {
-        font-family: "Cabinet Grotesk";
-        src: url("./assets/fonts/CabinetGrotesk-Regular.woff2") format("woff2");
-        font-weight: 400;
-        font-style: normal;
-      }
-      @font-face {
-        font-family: "Cabinet Grotesk";
-        src: url("./assets/fonts/CabinetGrotesk-Medium.woff2") format("woff2");
-        font-weight: 500;
-        font-style: normal;
-      }
-      @font-face {
-        font-family: "Cabinet Grotesk";
-        src: url("./assets/fonts/CabinetGrotesk-Bold.woff2") format("woff2");
-        font-weight: 700;
-        font-style: normal;
-      }
-      @font-face {
-        font-family: "Cabinet Grotesk";
-        src: url("./assets/fonts/CabinetGrotesk-Black.woff2") format("woff2");
-        font-weight: 900;
-        font-style: normal;
-      }
-      @font-face {
-        font-family: "General Sans";
-        src: url("./assets/fonts/GeneralSans-Regular.woff2") format("woff2");
-        font-weight: 400;
-        font-display: swap;
-        font-style: normal;
-      }
-      @font-face {
-        font-family: "General Sans";
-        src: url("./assets/fonts/GeneralSans-Medium.woff2") format("woff2");
-        font-weight: 500;
-        font-display: swap;
-        font-style: normal;
-      }
-      @font-face {
-        font-family: "General Sans";
-        src: url("./assets/fonts/GeneralSans-Semibold.woff2") format("woff2");
-        font-weight: 600;
-        font-display: swap;
-        font-style: normal;
-      }
-      @font-face {
-        font-family: "General Sans";
-        src: url("./assets/fonts/GeneralSans-Bold.woff2") format("woff2");
-        font-weight: 700;
-        font-display: swap;
-        font-style: normal;
-      }
-      .container {
-        position: relative;
-        width: fit-content;
-        min-width: 265px;
-        height: fit-content;
-        display: grid;
-        grid-template-columns: 1fr;
-        gap: 8px;
-        padding: 16px;
-        border-radius: 12px;
-        background-color: black;
-        border: 6px solid;
-        z-index: 0;
-        transition:
-          opacity 2s,
-          transform 2s;
-      }
-
-      .container::before,
-      .container::after {
-        content: "";
-        position: absolute;
-        inset: 0;
-        border-radius: inherit;
-        overflow: hidden;
-      }
-
-      .container::before {
-        z-index: -10;
-        background: linear-gradient(to top right, #3c00dc, #ff5001);
-        margin: -6px;
-      }
-
-      .container::after {
-        z-index: -2;
-        background-color: black;
-      }
-
-      .background-image {
-        position: absolute;
-        inset: 0;
-        z-index: -1;
-        width: 100%;
-        height: 100%;
-        object-fit: cover;
-        user-select: none;
-        pointer-events: none;
-      }
-
-      .title {
-        text-transform: uppercase;
-        font-size: 36px;
-        line-height: 36px;
-      }
-
-      .gradient-bar {
-        height: 2.796px;
-        width: 100%;
-        background: linear-gradient(to right, #ff5001, #3c00dc);
-      }
-
-      .section {
-        background: rgba(60, 0, 220, 0.33);
-        height: fit-content;
-        padding: 12px;
-      }
-
-      .section-title {
-        text-transform: uppercase;
-        color: #feffff;
-        opacity: 0.66;
-        font-size: 16px;
-        line-height: 19.84px;
-        font-weight: 700;
-        font-family: "Cabinet Grotesk", sans-serif;
-      }
-
-      .points {
-        text-transform: uppercase;
-        color: #feffff;
-        font-size: 26px;
-        line-height: 26px;
-        font-weight: bold;
-      }
-
-      .points.total {
-        color: #f5eb00;
-      }
-
-      .conversion {
-        text-transform: uppercase;
-        margin-left: auto;
-        color: rgba(255, 255, 255, 0.66);
-        font-size: 16px;
-        line-height: normal;
-        font-weight: bold;
-        width: fit-content;
-      }
-      .bg-stary-svg {
-        position: absolute;
-        top: 0;
-        left: 0;
-        width: 100%;
-        height: 100%;
-        z-index: -1;
-        opacity: 0.33;
-      }
-      h1 {
-        text-transform: uppercase;
-        font-size: 36px;
-        line-height: 36px;
-        width: 100%;
-        background-image: linear-gradient(to bottom, #fff, #999999);
-        background-clip: text;
-        -webkit-background-clip: text;
-        color: transparent;
-        font-weight: 800;
-        margin: 0;
-      }
-      p {
-        font-size: 16px;
-        line-height: 16px;
-        font-family: "General Sans", "sans-serif";
-        margin: 0;
-        /* width: fit-content; */
-        text-wrap: nowrap;
-        width: 100%;
-      }
-      .blue-gradient {
-        background: linear-gradient(to bottom, #b4ebf8, #789dfa);
-        color: transparent;
-        background-clip: text;
-        -webkit-background-clip: text;
-        text-wrap: wrap;
-        max-width: 206px;
-      }
-      #container{
-        width: fit-content;
-      }
+    * {
+    font-family: "Cabinet Grotesk", sans-serif;
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+  }
+  @font-face {
+    font-family: "Cabinet Grotesk";
+    src: url("./assets/fonts/CabinetGrotesk-Regular.woff2") format("woff2");
+    font-weight: 400;
+    font-style: normal;
+  }
+  @font-face {
+    font-family: "Cabinet Grotesk";
+    src: url("./assets/fonts/CabinetGrotesk-Medium.woff2") format("woff2");
+    font-weight: 500;
+    font-style: normal;
+  }
+  @font-face {
+    font-family: "Cabinet Grotesk";
+    src: url("./assets/fonts/CabinetGrotesk-Bold.woff2") format("woff2");
+    font-weight: 700;
+    font-style: normal;
+  }
+  @font-face {
+    font-family: "Cabinet Grotesk";
+    src: url("./assets/fonts/CabinetGrotesk-Black.woff2") format("woff2");
+    font-weight: 900;
+    font-style: normal;
+  }
+  @font-face {
+    font-family: "General Sans";
+    src: url("./assets/fonts/GeneralSans-Regular.woff2") format("woff2");
+    font-weight: 400;
+    font-display: swap;
+    font-style: normal;
+  }
+  @font-face {
+    font-family: "General Sans";
+    src: url("./assets/fonts/GeneralSans-Medium.woff2") format("woff2");
+    font-weight: 500;
+    font-display: swap;
+    font-style: normal;
+  }
+  @font-face {
+    font-family: "General Sans";
+    src: url("./assets/fonts/GeneralSans-Semibold.woff2") format("woff2");
+    font-weight: 600;
+    font-display: swap;
+    font-style: normal;
+  }
+  @font-face {
+    font-family: "General Sans";
+    src: url("./assets/fonts/GeneralSans-Bold.woff2") format("woff2");
+    font-weight: 700;
+    font-display: swap;
+    font-style: normal;
+  }
+  .container {
+    position: relative;
+    width: fit-content;
+    min-width: 265px;
+    height: fit-content;
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 8px;
+    padding: 16px;
+    border-radius: 12px;
+    background-color: black;
+    border: 6px solid;
+    z-index: 0;
+    transition:
+      opacity 2s,
+      transform 2s;
+  }
+  .container::before,
+  .container::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    overflow: hidden;
+  }
+  .container::before {
+    z-index: -10;
+    background: linear-gradient(to top right, #3C00DC, #FF5001);
+    margin: -6px;
+  }
+  .container::after {
+    z-index: -2;
+    background-color: black;
+    border-radius: 12px;
+  }
+  .background-image {
+    position: absolute;
+    inset: 0;
+    z-index: -1;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    user-select: none;
+    pointer-events: none;
+  }
+  .title {
+    text-transform: uppercase;
+    font-size: 36px;
+    line-height: 36px;
+  }
+  .gradient-bar {
+    height: 2.796px;
+    width: 100%;
+    background: linear-gradient(to right, #FF5001, #3C00DC);
+  }
+  .section {
+    background: rgba(60, 0, 220, 0.33);
+    height: fit-content;
+    padding: 12px;
+  }
+  .section-title {
+    text-transform: uppercase;
+    color: #FEFFFF;
+    opacity: 0.66;
+    font-size: 16px;
+    line-height: 19.84px;
+    font-weight: 700;
+    font-family: "Cabinet Grotesk", sans-serif;
+  }
+  .points {
+    text-transform: uppercase;
+    color: #FEFFFF;
+    font-size: 26px;
+    line-height: 26px;
+    font-weight: bold;
+  }
+  .points.total {
+    color: #F5EB00;
+  }
+  .points.small {
+    font-size: 16px;
+    line-height: 16px;
+    opacity: 0.66;
+    margin-top: 8px;
+  }
+  .points > small {
+    opacity: 0.66;
+  }
+  .conversion {
+    text-transform: uppercase;
+    margin-left: auto;
+    color: rgba(255, 255, 255, 0.66);
+    font-size: 16px;
+    line-height: normal;
+    font-weight: bold;
+    width: fit-content;
+  }
+  .bg-stary-svg {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    z-index: -1;
+    opacity: 0.33;
+  }
+  h1 {
+    text-transform: uppercase;
+    font-size: 36px;
+    line-height: 36px;
+    width: 100%;
+    background-image: linear-gradient(to bottom, #fff, #999999);
+    background-clip: text;
+    -webkit-background-clip: text;
+    color: transparent;
+    font-weight: 800;
+    margin: 0;
+  }
+  p {
+    font-size: 16px;
+    line-height: 16px;
+    font-family: "General Sans", "sans-serif";
+    margin: 0;
+    /* width: fit-content; */
+    text-wrap: nowrap;
+    width: 100%;
+  }
+  .blue-gradient {
+    background: linear-gradient(to bottom, #B4EBF8, #789DFA);
+    color: transparent;
+    background-clip: text;
+    -webkit-background-clip: text;
+    text-wrap: wrap;
+    max-width: 206px;
+  }
+  #container {
+    width: fit-content;
+  }
     </style>
   </head>
   <body>
@@ -253,33 +263,33 @@ const generateEra2Html = (htmlPayload, filename) => {
           <p class="section-title">Wishwell Era Points</p>
           <p class="points">
             <!-- Replace with actual value -->
-            ${wishwellPoints}
+            ${formattingNumber(wishwellPoints)}
           </p>
         </div>
         <div class="section">
           <p class="section-title">Mining Era Points</p>
           <p class="points">
             <!-- Replace with actual value -->
-            ${miningPoints}
+            ${formattingNumber(miningPoints)}
           </p>
         </div>
         <div class="section">
           <p class="section-title">Minting Era Points</p>
           <p class="points">
             <!-- Replace with actual value -->
-            ${mintingPoints}
+            ${formattingNumber(mintingPoints)}
           </p>
         </div>
         <div class="section">
           <p class="section-title">Total Points</p>
           <p class="points total">
             <!-- Replace with actual value -->
-            ${totalPoints}
+            ${formattingNumber(totalPoints)}
           </p>
         </div>
         <p class="conversion">
           <!-- Replace with actual value -->
-          ${pointsAverage} Points / $1
+          ${formattingNumber(pointsAverage)} Points / $1
         </p>
       </div>
     </div>
