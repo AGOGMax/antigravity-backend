@@ -328,7 +328,7 @@ app.get("/api/all-time-leaderboard", async (req, res) => {
   }
 });
 
-app.get("/api/era-3-timestamps-multipliers", async (req, res) => {
+app.post("/api/era-3-timestamps-multipliers", async (req, res) => {
   try {
     const { walletAddress } = req.body;
     const response = await fetchEra3TimestampsAndMultipliers(walletAddress);
