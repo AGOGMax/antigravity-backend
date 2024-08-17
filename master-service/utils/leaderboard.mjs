@@ -3,7 +3,7 @@ import { getBadge } from "../../helpers/helper.mjs";
 import isEmpty from "lodash/isEmpty.js";
 
 const fetchAllTimeLeaderboard = async (currentUserWalletAddress, limit) => {
-  let pipeline = [
+  const users = await pointsModel.aggregate([
     {
       $group: {
         _id: "$walletAddress",
@@ -11,124 +11,56 @@ const fetchAllTimeLeaderboard = async (currentUserWalletAddress, limit) => {
       },
     },
     {
-      $sort: { totalPoints: -1 },
-    },
-    {
-      $setWindowFields: {
-        sortBy: { totalPoints: -1 },
-        output: {
-          rank: {
-            $rank: {},
-          },
-        },
-      },
-    },
-    {
       $project: {
         _id: 0,
         walletAddress: "$_id",
         totalPoints: 1,
-        rank: 1,
       },
     },
-  ];
+  ]);
 
-  if (limit) {
-    pipeline.push({ $limit: limit });
+  users.sort((a, b) => {
+    if (a.totalPoints === b.totalPoints) {
+      return a.walletAddress.localeCompare(b.walletAddress);
+    }
+    return b.totalPoints - a.totalPoints;
+  });
+
+  users.forEach((user, index) => {
+    user.rank = index + 1;
+  });
+
+  if (!limit) {
+    return users;
   }
-  const topUsers = await pointsModel.aggregate(pipeline);
 
-  const isCurrentUserInTopUsers = topUsers.some(
+  const topUsers = users.slice(0, limit);
+
+  const currentUserWithRank = users.find(
     (item) =>
       item.walletAddress.toLowerCase() ===
       currentUserWalletAddress.toLowerCase()
   );
 
-  if (isCurrentUserInTopUsers || isEmpty(currentUserWalletAddress)) {
+  if (currentUserWithRank?.rank <= limit || isEmpty(currentUserWithRank)) {
     return [...topUsers];
   }
 
-  const currentUserWithRank = await pointsModel.aggregate([
-    {
-      $group: {
-        _id: "$walletAddress",
-        totalPoints: { $sum: "$points" },
-      },
-    },
-    {
-      $sort: { totalPoints: -1 },
-    },
-    {
-      $setWindowFields: {
-        sortBy: { totalPoints: -1 },
-        output: {
-          rank: {
-            $rank: {},
-          },
-        },
-      },
-    },
-    {
-      $match: { _id: currentUserWalletAddress },
-    },
-    {
-      $project: {
-        _id: 0,
-        walletAddress: "$_id",
-        totalPoints: 1,
-        rank: 1,
-      },
-    },
-  ]);
+  const currentUserRank = currentUserWithRank?.rank;
+  const previousUser = users?.[currentUserRank - 2];
+  const nextUser = users?.[currentUserRank];
 
-  const currentUserRank = currentUserWithRank[0]?.rank;
-
-  if (!currentUserRank) {
-    return [...topUsers];
-  }
-
-  const neighbourUsersWithRanks = await pointsModel.aggregate([
-    {
-      $group: {
-        _id: "$walletAddress",
-        totalPoints: { $sum: "$points" },
-      },
-    },
-    {
-      $sort: { totalPoints: -1 },
-    },
-    {
-      $setWindowFields: {
-        sortBy: { totalPoints: -1 },
-        output: {
-          rank: {
-            $rank: {},
-          },
-        },
-      },
-    },
-    {
-      $match: {
-        rank: {
-          $in: [currentUserRank - 1, currentUserRank, currentUserRank + 1],
-        },
-      },
-    },
-    {
-      $project: {
-        _id: 0,
-        walletAddress: "$_id",
-        totalPoints: 1,
-        rank: 1,
-      },
-    },
-  ]);
-
-  return [...topUsers.slice(0, 5), null, ...neighbourUsersWithRanks];
+  return [
+    ...topUsers.slice(0, 5),
+    null,
+    previousUser,
+    currentUserWithRank,
+    nextUser,
+  ];
 };
 
 const fetchEraWiseLeaderboard = async (era, currentUserWalletAddress) => {
-  const topUsers = await pointsModel.aggregate([
+  const users = await pointsModel.aggregate([
     {
       $match: { era: era },
     },
@@ -139,124 +71,48 @@ const fetchEraWiseLeaderboard = async (era, currentUserWalletAddress) => {
       },
     },
     {
-      $sort: { totalPoints: -1 },
-    },
-    {
-      $setWindowFields: {
-        sortBy: { totalPoints: -1 },
-        output: {
-          rank: {
-            $rank: {},
-          },
-        },
-      },
-    },
-    {
-      $limit: 10,
-    },
-    {
       $project: {
         _id: 0,
         walletAddress: "$_id",
         totalPoints: 1,
-        rank: 1,
       },
     },
   ]);
 
-  const isCurrentUserInTopUsers = topUsers.some(
+  users.sort((a, b) => {
+    if (a.totalPoints === b.totalPoints) {
+      return a.walletAddress.localeCompare(b.walletAddress);
+    }
+    return b.totalPoints - a.totalPoints;
+  });
+
+  users.forEach((user, index) => {
+    user.rank = index + 1;
+  });
+
+  const topUsers = users.slice(0, 10);
+
+  const currentUserWithRank = users.find(
     (item) =>
       item.walletAddress.toLowerCase() ===
       currentUserWalletAddress.toLowerCase()
   );
 
-  if (isCurrentUserInTopUsers || isEmpty(currentUserWalletAddress)) {
+  if (currentUserWithRank?.rank <= 10 || isEmpty(currentUserWithRank)) {
     return [...topUsers];
   }
 
-  const currentUserWithRank = await pointsModel.aggregate([
-    {
-      $match: { era: era },
-    },
-    {
-      $group: {
-        _id: "$walletAddress",
-        totalPoints: { $sum: "$points" },
-      },
-    },
-    {
-      $sort: { totalPoints: -1 },
-    },
-    {
-      $setWindowFields: {
-        sortBy: { totalPoints: -1 },
-        output: {
-          rank: {
-            $rank: {},
-          },
-        },
-      },
-    },
-    {
-      $match: { _id: currentUserWalletAddress },
-    },
-    {
-      $project: {
-        _id: 0,
-        walletAddress: "$_id",
-        totalPoints: 1,
-        rank: 1,
-      },
-    },
-  ]);
+  const currentUserRank = currentUserWithRank?.rank;
+  const previousUser = users?.[currentUserRank - 2];
+  const nextUser = users?.[currentUserRank];
 
-  const currentUserRank = currentUserWithRank[0]?.rank;
-
-  if (!currentUserRank) {
-    return [...topUsers];
-  }
-
-  const neighbourUsersWithRanks = await pointsModel.aggregate([
-    {
-      $match: { era: era },
-    },
-    {
-      $group: {
-        _id: "$walletAddress",
-        totalPoints: { $sum: "$points" },
-      },
-    },
-    {
-      $sort: { totalPoints: -1 },
-    },
-    {
-      $setWindowFields: {
-        sortBy: { totalPoints: -1 },
-        output: {
-          rank: {
-            $rank: {},
-          },
-        },
-      },
-    },
-    {
-      $match: {
-        rank: {
-          $in: [currentUserRank - 1, currentUserRank, currentUserRank + 1],
-        },
-      },
-    },
-    {
-      $project: {
-        _id: 0,
-        walletAddress: "$_id",
-        totalPoints: 1,
-        rank: 1,
-      },
-    },
-  ]);
-
-  return [...topUsers.slice(0, 5), null, ...neighbourUsersWithRanks];
+  return [
+    ...topUsers.slice(0, 5),
+    null,
+    previousUser,
+    currentUserWithRank,
+    nextUser,
+  ];
 };
 
 const transformLeaderboard = (leaderboard, currentUserWalletAddress) => {
