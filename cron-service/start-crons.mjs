@@ -94,7 +94,7 @@ cron.schedule("*/2 * * * *", () => {
   }
 });
 
-cron.schedule("*/6 * * * *", () => {
+cron.schedule("0 */6 * * *", () => {
   console.log("Cron Ran for scheduling timestamp update for journeys");
   try {
     scheduleTimestampUpdates();
@@ -107,5 +107,7 @@ const era2KeeperDate = new Date(parseInt(secrets?.ERA_2_KEEPER_TIMESTAMP));
 schedule.scheduleJob(era2KeeperDate, invokeEra2Keeper);
 
 setInterval(() => {}, 1000);
+
+updateTimestampsFromContract();
 
 export { captureErrorWithContext };
