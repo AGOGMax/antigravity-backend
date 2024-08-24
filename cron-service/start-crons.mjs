@@ -34,39 +34,73 @@ const captureErrorWithContext = (error, contextMessage) => {
 
 cron.schedule("*/2 * * * *", () => {
   console.log("Cron Ran for Era-1");
-  fetchEra1Contributions("base");
-  fetchEra1Contributions("pulsechain");
+  try {
+    fetchEra1Contributions("base");
+    fetchEra1Contributions("pulsechain");
+  } catch (e) {
+    captureErrorWithContext(e, "Error while running era 1 cron.");
+  }
 });
 
 cron.schedule("*/2 * * * *", () => {
   console.log("Cron Ran for Era-2");
-  fetchEra2Contributions("base");
-  fetchEra2Contributions("pulsechain");
+  try {
+    fetchEra2Contributions("base");
+    fetchEra2Contributions("pulsechain");
+  } catch (e) {
+    captureErrorWithContext(e, "Error while running era 2 cron.");
+  }
 });
 
 cron.schedule("*/15 * * * *", () => {
   console.log("Cron Ran for Era 1 Keeper");
-  invokeEra1Keeper();
+  try {
+    invokeEra1Keeper();
+  } catch (e) {
+    captureErrorWithContext(e, "Error while running era 1 keeper.");
+  }
 });
 
 cron.schedule("0 */6 * * *", () => {
   console.log("Cron Ran for Era 3 Timestamps from Contract");
-  updateTimestampsFromContract();
+  try {
+    updateTimestampsFromContract();
+  } catch (e) {
+    captureErrorWithContext(
+      e,
+      "Error while running update timestamps from contract cron."
+    );
+  }
 });
 
 cron.schedule("*/2 * * * *", () => {
   console.log("Cron Ran for Era-3");
-  fetchEra3Contributions();
+  try {
+    fetchEra3Contributions();
+  } catch (e) {
+    captureErrorWithContext(e, "Error while running era 3 contributions cron.");
+  }
 });
 
 cron.schedule("*/2 * * * *", () => {
   console.log("Cron Ran for Era-3: Check for Paused Journey from Subgraph");
-  updateTimestampsIfPaused();
+  try {
+    updateTimestampsIfPaused();
+  } catch (e) {
+    captureErrorWithContext(
+      e,
+      "Error while running timestamps from subgraph cron."
+    );
+  }
 });
 
 cron.schedule("*/6 * * * *", () => {
   console.log("Cron Ran for scheduling timestamp update for journeys");
-  scheduleTimestampUpdates();
+  try {
+    scheduleTimestampUpdates();
+  } catch (e) {
+    captureErrorWithContext(e, "Error while running timestamp scheduler cron.");
+  }
 });
 
 const era2KeeperDate = new Date(parseInt(secrets?.ERA_2_KEEPER_TIMESTAMP));
