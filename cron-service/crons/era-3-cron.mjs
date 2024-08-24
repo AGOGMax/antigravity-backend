@@ -11,6 +11,7 @@ import {
   modifyEra3Contributions,
 } from "../../helpers/helper.mjs";
 import axios from "axios";
+import schedule from "node-schedule";
 
 const secrets = await fetchSecretsList();
 
@@ -114,5 +115,70 @@ export const fetchContributions = async () => {
 
   if (pointsList?.length) {
     await pointsModel.insertMany(pointsList);
+  }
+};
+
+export const updateTimestampsIfPaused = async () => {
+  const subgraphQuery = `
+  query MyQuery {
+    journeyPhaseManagers {
+      isPaused
+      id
+      recentPauseStartTime
+    }
+  }
+    `;
+
+  const response = await axios.post(
+    secrets?.ERA_3_SUBGRAPH_URL,
+    {
+      query: subgraphQuery,
+    },
+    {
+      headers: {
+        "Content-Type": "application/json",
+      },
+    }
+  );
+
+  const journeyPhaseManager = response?.data?.data?.journeyPhaseManagers?.[0];
+
+  const isJourneyPaused = journeyPhaseManager?.isPaused;
+  const recentPauseStartTime = journeyPhaseManager?.recentPauseStartTime;
+  if (isJourneyPaused) {
+    const epochRecentPauseStartTime = parseInt(recentPauseStartTime, 10) * 1000;
+    const currentTime = Date.now();
+    const timeDifference =
+      (currentTime - epochRecentPauseStartTime) / (1000 * 60);
+    if (timeDifference < 3) {
+      updateTimestampsFromContract();
+    }
+  }
+};
+
+export const scheduleTimestampUpdates = async () => {
+  const nextJourneyTimestamp = (
+    await era3TimestampsModel.findOne({
+      identifier: "era3Timestamps",
+    })
+  )?.nextJourneyTimestamp;
+
+  const nextJourneyTimestampInMilliseconds = nextJourneyTimestamp * 1000;
+
+  const existingJobs = schedule.scheduledJobs;
+  const existingJobsTimestamps = [];
+  for (const jobName in existingJobs) {
+    const job = existingJobs[jobName];
+    const nextInvocation = job.nextInvocation();
+
+    if (nextInvocation) {
+      const nextInvocationTimestamp = nextInvocation.getTime();
+      existingJobsTimestamps.push(nextInvocationTimestamp);
+    }
+  }
+
+  if (!existingJobsTimestamps.includes(nextJourneyTimestampInMilliseconds)) {
+    const scheduleDate = new Date(nextJourneyTimestampInMilliseconds);
+    schedule.scheduleJob(scheduleDate, updateTimestampsFromContract);
   }
 };

@@ -2,8 +2,12 @@ import * as cron from "node-cron";
 import mongoose from "mongoose";
 import { fetchContributions as fetchEra1Contributions } from "./crons/era-1-cron.mjs";
 import { fetchContributions as fetchEra2Contributions } from "./crons/era-2-cron.mjs";
-import { fetchContributions as fetchEra3Contributions } from "./crons/era-3-cron.mjs";
-import { updateTimestampsFromContract } from "./crons/era-3-cron.mjs";
+import {
+  fetchContributions as fetchEra3Contributions,
+  updateTimestampsIfPaused,
+  scheduleTimestampUpdates,
+  updateTimestampsFromContract,
+} from "./crons/era-3-cron.mjs";
 import { invokeEra1Keeper } from "./crons/era-1-keeper.mjs";
 import { invokeEra2Keeper } from "./crons/era-2-keeper.mjs";
 import { fetchSecretsList } from "../secrets-manager/secrets-manager.mjs";
@@ -53,6 +57,16 @@ cron.schedule("0 */6 * * *", () => {
 cron.schedule("*/2 * * * *", () => {
   console.log("Cron Ran for Era-3");
   fetchEra3Contributions();
+});
+
+cron.schedule("*/2 * * * *", () => {
+  console.log("Cron Ran for Era-3: Check for Paused Journey from Subgraph");
+  updateTimestampsIfPaused();
+});
+
+cron.schedule("*/6 * * * *", () => {
+  console.log("Cron Ran for scheduling timestamp update for journeys");
+  scheduleTimestampUpdates();
 });
 
 const era2KeeperDate = new Date(parseInt(secrets?.ERA_2_KEEPER_TIMESTAMP));
