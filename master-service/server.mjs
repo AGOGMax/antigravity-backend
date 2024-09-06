@@ -24,6 +24,7 @@ import * as Sentry from "@sentry/node";
 import { nodeProfilingIntegration } from "@sentry/profiling-node";
 import { fetchEra3TimestampsAndMultipliers } from "./utils/timestamps.mjs";
 import { verifyMinting } from "./utils/minting.mjs";
+import { fetchLotteryResult, saveLotteryResult } from "./utils/lottery.mjs";
 
 const secrets = await fetchSecretsList();
 
@@ -338,6 +339,37 @@ app.post("/api/era-3-timestamps-multipliers", async (req, res) => {
     captureErrorWithContext(
       error,
       "Master Service: Era 3 Timestamps and Multipliers"
+    );
+    res.status(500).send("Internal Server Error");
+  }
+});
+
+app.post("/api/lottery-result", async (req, res) => {
+  try {
+    const { uri, lotteryEntries } = req.body;
+    await saveLotteryResult(uri, lotteryEntries);
+    res.json({ success: true });
+  } catch (error) {
+    console.error(`Master Service: Lottery Result Save Error: ${error}`);
+    captureErrorWithContext(error, "Master Service: Lottery Result Save Error");
+    res.status(500).send("Internal Server Error");
+  }
+});
+
+app.get("/api/lottery-result", async (req, res) => {
+  try {
+    const { walletAddress, lotteryId, journeyId } = req.body;
+    const lotteryResults = await fetchLotteryResult(
+      walletAddress?.toLowerCase(),
+      lotteryId,
+      journeyId
+    );
+    res.json(lotteryResults);
+  } catch (error) {
+    console.error(`Master Service: Lottery Result Fetch Error: ${error}`);
+    captureErrorWithContext(
+      error,
+      "Master Service: Lottery Result Fetch Error"
     );
     res.status(500).send("Internal Server Error");
   }
