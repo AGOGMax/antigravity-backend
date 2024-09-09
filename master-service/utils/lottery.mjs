@@ -76,24 +76,32 @@ const fetchLotteryResult = async (walletAddress, lotteryId, journeyId) => {
         walletAddress: walletAddress,
         lotteryId: lotteryId,
         journeyId: journeyId,
+        isPruned: false,
       });
     } else if (lotteryId) {
       return lotteryEntriesModel.find({
         walletAddress: walletAddress,
         lotteryId: lotteryId,
+        isPruned: false,
       });
     } else if (journeyId) {
       return lotteryEntriesModel.find({
         walletAddress: walletAddress,
         journeyId: journeyId,
+        isPruned: false,
       });
     } else {
       return lotteryEntriesModel.find({
         walletAddress: walletAddress,
+        isPruned: false,
       });
     }
   }
   return [];
 };
 
-export { saveLotteryResult, fetchLotteryResult };
+const fetchLotteryResults = async () => {
+  return lotteryEntriesModel.find({ isPruned: false });
+};
+
+export { saveLotteryResult, fetchLotteryResult, fetchLotteryResults };
