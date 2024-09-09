@@ -24,7 +24,11 @@ import * as Sentry from "@sentry/node";
 import { nodeProfilingIntegration } from "@sentry/profiling-node";
 import { fetchEra3TimestampsAndMultipliers } from "./utils/timestamps.mjs";
 import { verifyMinting } from "./utils/minting.mjs";
-import { fetchLotteryResult, saveLotteryResult } from "./utils/lottery.mjs";
+import {
+  fetchLotteryResult,
+  fetchLotteryResults,
+  saveLotteryResult,
+} from "./utils/lottery.mjs";
 
 const secrets = await fetchSecretsList();
 
@@ -370,6 +374,20 @@ app.get("/api/lottery-result", async (req, res) => {
     captureErrorWithContext(
       error,
       "Master Service: Lottery Result Fetch Error"
+    );
+    res.status(500).send("Internal Server Error");
+  }
+});
+
+app.get("/api/lottery-results", async (req, res) => {
+  try {
+    const lotteryResults = await fetchLotteryResults();
+    res.json(lotteryResults);
+  } catch (error) {
+    console.error(`Master Service: Lottery Results Fetch Error: ${error}`);
+    captureErrorWithContext(
+      error,
+      "Master Service: Lottery Results Fetch Error"
     );
     res.status(500).send("Internal Server Error");
   }
