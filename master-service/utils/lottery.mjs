@@ -27,8 +27,7 @@ const fetchAndAttachAddresses = async (lotteryBatch) => {
     `;
 
   const response = await axios.post(
-    "https://api.studio.thegraph.com/query/64293/ag-base-sepolia/version/latest" ||
-      secrets?.ERA_3_SUBGRAPH_URL,
+    secrets?.ERA_3_SUBGRAPH_URL,
     {
       query: usersQuery,
     },
