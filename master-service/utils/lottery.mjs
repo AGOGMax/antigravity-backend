@@ -69,38 +69,60 @@ const saveLotteryResult = async (uri, lotteryEntries) => {
   lotteryEntriesModel.insertMany(lotteryBatchesWithAddress);
 };
 
-const fetchLotteryResult = async (walletAddress, lotteryId, journeyId) => {
+const fetchLotteryResult = async (
+  walletAddress,
+  lotteryId,
+  journeyId,
+  isPruned
+) => {
   if (walletAddress) {
     if (lotteryId && journeyId) {
       return lotteryEntriesModel.find({
         walletAddress: walletAddress,
         lotteryId: lotteryId,
         journeyId: journeyId,
-        isPruned: false,
+        isPruned: isPruned,
       });
     } else if (lotteryId) {
       return lotteryEntriesModel.find({
         walletAddress: walletAddress,
         lotteryId: lotteryId,
-        isPruned: false,
+        isPruned: isPruned,
       });
     } else if (journeyId) {
       return lotteryEntriesModel.find({
         walletAddress: walletAddress,
         journeyId: journeyId,
-        isPruned: false,
+        isPruned: isPruned,
       });
     } else {
       return lotteryEntriesModel.find({
         walletAddress: walletAddress,
-        isPruned: false,
+        isPruned: isPruned,
       });
     }
   }
   return [];
 };
 
-const fetchLotteryResults = async () => {
+const fetchLotteryResults = async (lotteryId, journeyId) => {
+  if (lotteryId && journeyId) {
+    return lotteryEntriesModel.find({
+      lotteryId: lotteryId,
+      journeyId: journeyId,
+      isPruned: false,
+    });
+  } else if (lotteryId) {
+    return lotteryEntriesModel.find({
+      lotteryId: lotteryId,
+      isPruned: false,
+    });
+  } else if (journeyId) {
+    return lotteryEntriesModel.find({
+      journeyId: journeyId,
+      isPruned: false,
+    });
+  }
   return lotteryEntriesModel.find({ isPruned: false });
 };
 

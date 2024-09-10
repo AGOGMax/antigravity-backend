@@ -362,11 +362,14 @@ app.post("/api/lottery-result", async (req, res) => {
 
 app.get("/api/lottery-result", async (req, res) => {
   try {
-    const { walletAddress, lotteryId, journeyId } = req.query;
+    const { walletAddress, lotteryId, journeyId, isPruned } = req.query;
+    const isPrunedBool = isPruned === "true";
+
     const lotteryResults = await fetchLotteryResult(
       walletAddress?.toLowerCase(),
       parseInt(lotteryId),
-      parseInt(journeyId)
+      parseInt(journeyId),
+      isPrunedBool
     );
     res.json(lotteryResults);
   } catch (error) {
@@ -379,9 +382,13 @@ app.get("/api/lottery-result", async (req, res) => {
   }
 });
 
-app.get("/api/lottery-results", async (req, res) => {
+app.get("/api/all-lottery-results", async (req, res) => {
   try {
-    const lotteryResults = await fetchLotteryResults();
+    const { lotteryId, journeyId } = req.query;
+    const lotteryResults = await fetchLotteryResults(
+      parseInt(lotteryId),
+      parseInt(journeyId)
+    );
     res.json(lotteryResults);
   } catch (error) {
     console.error(`Master Service: Lottery Results Fetch Error: ${error}`);
