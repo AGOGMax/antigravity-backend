@@ -362,11 +362,11 @@ app.post("/api/lottery-result", async (req, res) => {
 
 app.get("/api/lottery-result", async (req, res) => {
   try {
-    const { walletAddress, lotteryId, journeyId } = req.body;
+    const { walletAddress, lotteryId, journeyId } = req.query;
     const lotteryResults = await fetchLotteryResult(
       walletAddress?.toLowerCase(),
-      lotteryId,
-      journeyId
+      parseInt(lotteryId),
+      parseInt(journeyId)
     );
     res.json(lotteryResults);
   } catch (error) {
