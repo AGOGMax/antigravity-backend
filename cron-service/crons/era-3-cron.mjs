@@ -4,14 +4,18 @@ import {
   contributionsModel,
   era3TimestampsModel,
   pointsModel,
+  lotteryEntriesModel,
+  transfersCronTimestampModel,
 } from "../models/models.mjs";
 import { fetchSecretsList } from "../../secrets-manager/secrets-manager.mjs";
 import {
+  fetchPrunedTokenIds,
   generateEra3Points,
   modifyEra3Contributions,
 } from "../../helpers/helper.mjs";
 import axios from "axios";
 import schedule from "node-schedule";
+import { chunkArray } from "../../helpers/helper.mjs";
 
 const secrets = await fetchSecretsList();
 
@@ -181,4 +185,98 @@ export const scheduleTimestampUpdates = async () => {
     const scheduleDate = new Date(nextJourneyTimestampInMilliseconds);
     schedule.scheduleJob(scheduleDate, updateTimestampsFromContract);
   }
+};
+
+export const pruneTokenIds = async () => {
+  const unprunedTokens = await lotteryEntriesModel.find({ isPruned: false });
+  const tokenIds = unprunedTokens.map((token) => token.tokenId);
+
+  const tokenIdsBatches = chunkArray(tokenIds, 1000);
+
+  let prunedTokenIds = [];
+  for (const batch of tokenIdsBatches) {
+    const updatedBatch = await fetchPrunedTokenIds(batch);
+    prunedTokenIds = [...prunedTokenIds, ...updatedBatch];
+  }
+
+  await lotteryEntriesModel.updateMany(
+    { tokenId: { $in: prunedTokenIds } },
+    { $set: { isPruned: true } }
+  );
+};
+
+export const updateRecentTransfersAddress = async () => {
+  const lastTimestamp = (
+    await transfersCronTimestampModel.find({
+      identification: "recentTransferTimestamp",
+    })
+  )?.[0]?.timestamp;
+
+  const transfersQuery = lastTimestamp
+    ? `
+    query MyQuery {
+      transfers(where: {timestamp_gte: ${lastTimestamp}}) {
+        from {
+          address
+        }
+        token {
+          tokenId
+        }
+        to {
+          address
+        }
+      }
+    }
+  `
+    : `
+    query MyQuery {
+      transfers{
+        from {
+          address
+        }
+        token {
+          tokenId
+        }
+        to {
+          address
+        }
+      }
+    }
+  `;
+
+  const response = await axios.post(
+    secrets?.ERA_3_SUBGRAPH_URL,
+    {
+      query: transfersQuery,
+    },
+    {
+      headers: {
+        "Content-Type": "application/json",
+      },
+    }
+  );
+
+  const transfers = response.data.data.transfers;
+  const bulkOperations = transfers.map((transfer) => {
+    const { tokenId } = transfer.token;
+    const newWalletAddress = transfer.to.address;
+
+    return {
+      updateMany: {
+        filter: { tokenId: parseInt(tokenId) },
+        update: { $set: { walletAddress: newWalletAddress } },
+      },
+    };
+  });
+
+  await lotteryEntriesModel.bulkWrite(bulkOperations);
+
+  await transfersCronTimestampModel.findOneAndUpdate(
+    { identification: "recentTransferTimestamp" },
+    { timestamp: parseInt(Date.now() / 1000) - 180 }, //Subtract 3 minutes as a buffer for cron run time.
+    {
+      upsert: true,
+      new: true,
+    }
+  );
 };

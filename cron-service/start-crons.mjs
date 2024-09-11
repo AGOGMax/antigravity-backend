@@ -7,6 +7,8 @@ import {
   updateTimestampsIfPaused,
   scheduleTimestampUpdates,
   updateTimestampsFromContract,
+  pruneTokenIds,
+  updateRecentTransfersAddress,
 } from "./crons/era-3-cron.mjs";
 import { invokeEra1Keeper } from "./crons/era-1-keeper.mjs";
 import { invokeEra2Keeper } from "./crons/era-2-keeper.mjs";
@@ -100,6 +102,24 @@ cron.schedule("0 */6 * * *", () => {
     scheduleTimestampUpdates();
   } catch (e) {
     captureErrorWithContext(e, "Error while running timestamp scheduler cron.");
+  }
+});
+
+cron.schedule("0 * * * *", () => {
+  console.log("Cron Ran for pruning token IDs.");
+  try {
+    pruneTokenIds();
+  } catch (e) {
+    captureErrorWithContext(e, "Error while running pruning token IDs.");
+  }
+});
+
+cron.schedule("0 * * * *", () => {
+  console.log("Cron Ran for updating fuel cell transfers.");
+  try {
+    updateRecentTransfersAddress();
+  } catch (e) {
+    captureErrorWithContext(e, "Error while updating fuel cell transfers.");
   }
 });
 

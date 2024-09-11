@@ -207,6 +207,46 @@ const generateEra3Points = async (contributions, era2Contributors) => {
   return pointsList;
 };
 
+const chunkArray = (array, size) => {
+  const result = [];
+  for (let i = 0; i < array.length; i += size) {
+    result.push(array.slice(i, i + size));
+  }
+  return result;
+};
+
+const fetchPrunedTokenIds = async (tokenIds) => {
+  const prunedWinningsQuery = `
+        query MyQuery {
+          winningPruneds(where: {fuelCell_: {tokenId_in: [${tokenIds.join(
+            ","
+          )}]}}) {
+            fuelCell {
+              tokenId
+            }
+        }}
+    `;
+
+  const response = await axios.post(
+    secrets?.ERA_3_SUBGRAPH_URL,
+    {
+      query: prunedWinningsQuery,
+    },
+    {
+      headers: {
+        "Content-Type": "application/json",
+      },
+    }
+  );
+
+  const winningsPruned = response.data.data.winningPruneds;
+  const prunedTokenIds = winningsPruned.map((winning) =>
+    parseInt(winning.fuelCell.tokenId)
+  );
+
+  return prunedTokenIds;
+};
+
 export {
   modifyEra2Contributions,
   modifyEra3Contributions,
@@ -218,4 +258,6 @@ export {
   predictEra2Points,
   predictMultiplier,
   fetchEra1ContributorsFromS3,
+  chunkArray,
+  fetchPrunedTokenIds,
 };
