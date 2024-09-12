@@ -27,6 +27,7 @@ import { verifyMinting } from "./utils/minting.mjs";
 import {
   fetchLotteryResult,
   fetchLotteryResults,
+  fetchTokensUsingUniqueCombinations,
   pruneTokens,
   saveLotteryResult,
 } from "./utils/lottery.mjs";
@@ -366,13 +367,20 @@ app.get("/api/lottery-result", async (req, res) => {
     const { walletAddress, lotteryId, journeyId, isPruned } = req.query;
     const isPrunedBool = isPruned === "true";
 
+    const tokenResults = await fetchTokensUsingUniqueCombinations(
+      walletAddress?.toLowerCase()
+    );
+
     const lotteryResults = await fetchLotteryResult(
       walletAddress?.toLowerCase(),
       parseInt(lotteryId),
       parseInt(journeyId),
       isPrunedBool
     );
-    res.json(lotteryResults);
+    res.json({
+      lotteryResult: lotteryResults,
+      uniqueCombinationTokens: tokenResults,
+    });
   } catch (error) {
     console.error(`Master Service: Lottery Result Fetch Error: ${error}`);
     captureErrorWithContext(
@@ -404,7 +412,7 @@ app.get("/api/all-lottery-results", async (req, res) => {
 app.post("/api/prune", async (req, res) => {
   try {
     const { walletAddress } = req.body;
-    const response = await pruneTokens(walletAddress.toLowerCase());
+    const response = await pruneTokens(walletAddress?.toLowerCase());
     res.json(response);
   } catch (error) {
     console.error(`Master Service: Prune API Error: ${error}`);

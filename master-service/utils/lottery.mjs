@@ -157,9 +157,39 @@ const pruneTokens = async (walletAddress) => {
   return { success: true };
 };
 
+const fetchTokensUsingUniqueCombinations = async (walletAddress) => {
+  const desiredFields = ["tokenId", "journeyId", "lotteryId", "-_id"];
+  if (walletAddress) {
+    const tokens = await lotteryEntriesModel.find({
+      walletAddress: walletAddress,
+    });
+
+    const uniqueCombinations = [
+      ...new Set(
+        tokens.map((token) => `${token.journeyId}-${token.lotteryId}`)
+      ),
+    ].map((combination) => {
+      const [journeyId, lotteryId] = combination.split("-").map(Number);
+      return { journeyId, lotteryId };
+    });
+
+    const queryArray = uniqueCombinations.map((combination) => ({
+      journeyId: combination.journeyId,
+      lotteryId: combination.lotteryId,
+    }));
+
+    const results = await lotteryEntriesModel
+      .find({ $or: queryArray })
+      .select(desiredFields);
+    return results;
+  }
+  return [];
+};
+
 export {
   saveLotteryResult,
   fetchLotteryResult,
   fetchLotteryResults,
   pruneTokens,
+  fetchTokensUsingUniqueCombinations,
 };
