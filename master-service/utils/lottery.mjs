@@ -1,16 +1,10 @@
 import axios from "axios";
 import { lotteryEntriesModel, lotteryResultsModel } from "../models/models.mjs";
 import { fetchSecretsList } from "../../secrets-manager/secrets-manager.mjs";
+import { chunkArray } from "../../helpers/helper.mjs";
+import { fetchPrunedTokenIds } from "../../helpers/helper.mjs";
 
 const secrets = await fetchSecretsList();
-
-const chunkArray = (array, size) => {
-  const result = [];
-  for (let i = 0; i < array.length; i += size) {
-    result.push(array.slice(i, i + size));
-  }
-  return result;
-};
 
 const fetchAndAttachAddresses = async (lotteryBatch) => {
   const tokenIds = lotteryBatch.map((item) => item.tokenId);
@@ -125,4 +119,31 @@ const fetchLotteryResults = async (lotteryId, journeyId) => {
   return lotteryEntriesModel.find({ isPruned: false });
 };
 
-export { saveLotteryResult, fetchLotteryResult, fetchLotteryResults };
+const pruneTokens = async (walletAddress) => {
+  const tokens = await lotteryEntriesModel.find({
+    walletAddress: walletAddress,
+    isPruned: false,
+  });
+
+  const tokenIds = tokens.map((token) => token.tokenId);
+  const tokenIdsBatches = chunkArray(tokenIds, 1000);
+
+  let prunedTokenIds = [];
+  for (const batch of tokenIdsBatches) {
+    const updatedBatch = await fetchPrunedTokenIds(batch);
+    prunedTokenIds = [...prunedTokenIds, ...updatedBatch];
+  }
+
+  await lotteryEntriesModel.updateMany(
+    { tokenId: { $in: prunedTokenIds } },
+    { $set: { isPruned: true } }
+  );
+  return { success: true };
+};
+
+export {
+  saveLotteryResult,
+  fetchLotteryResult,
+  fetchLotteryResults,
+  pruneTokens,
+};

@@ -27,6 +27,7 @@ import { verifyMinting } from "./utils/minting.mjs";
 import {
   fetchLotteryResult,
   fetchLotteryResults,
+  pruneTokens,
   saveLotteryResult,
 } from "./utils/lottery.mjs";
 
@@ -396,6 +397,18 @@ app.get("/api/all-lottery-results", async (req, res) => {
       error,
       "Master Service: Lottery Results Fetch Error"
     );
+    res.status(500).send("Internal Server Error");
+  }
+});
+
+app.post("/api/prune", async (req, res) => {
+  try {
+    const { walletAddress } = req.body;
+    const response = await pruneTokens(walletAddress.toLowerCase());
+    res.json(response);
+  } catch (error) {
+    console.error(`Master Service: Prune API Error: ${error}`);
+    captureErrorWithContext(error, "Master Service: Prune API Error");
     res.status(500).send("Internal Server Error");
   }
 });
