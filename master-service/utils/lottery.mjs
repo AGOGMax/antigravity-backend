@@ -68,6 +68,7 @@ const fetchLotteryResult = async (
   journeyId,
   isPruned
 ) => {
+  const desiredFields = ["tokenId", "journeyId", "lotteryId", "-_id"];
   if (walletAddress) {
     if (lotteryId && journeyId) {
       return lotteryEntriesModel
@@ -77,7 +78,7 @@ const fetchLotteryResult = async (
           journeyId: journeyId,
           isPruned: isPruned,
         })
-        .select(["tokenId", "journeyId", "lotteryId", "-_id"]);
+        .select(desiredFields);
     } else if (lotteryId) {
       return lotteryEntriesModel
         .find({
@@ -85,7 +86,7 @@ const fetchLotteryResult = async (
           lotteryId: lotteryId,
           isPruned: isPruned,
         })
-        .select(["tokenId", "journeyId", "lotteryId", "-_id"]);
+        .select(desiredFields);
     } else if (journeyId) {
       return lotteryEntriesModel
         .find({
@@ -93,20 +94,21 @@ const fetchLotteryResult = async (
           journeyId: journeyId,
           isPruned: isPruned,
         })
-        .select(["tokenId", "journeyId", "lotteryId", "-_id"]);
+        .select(desiredFields);
     } else {
       return lotteryEntriesModel
         .find({
           walletAddress: walletAddress,
           isPruned: isPruned,
         })
-        .select(["tokenId", "journeyId", "lotteryId", "-_id"]);
+        .select(desiredFields);
     }
   }
   return [];
 };
 
 const fetchLotteryResults = async (lotteryId, journeyId) => {
+  const desiredFields = ["tokenId", "journeyId", "lotteryId", "-_id"];
   if (lotteryId && journeyId) {
     return lotteryEntriesModel
       .find({
@@ -114,25 +116,23 @@ const fetchLotteryResults = async (lotteryId, journeyId) => {
         journeyId: journeyId,
         isPruned: false,
       })
-      .select(["tokenId", "journeyId", "lotteryId", "walletAddress", "-_id"]);
+      .select(desiredFields);
   } else if (lotteryId) {
     return lotteryEntriesModel
       .find({
         lotteryId: lotteryId,
         isPruned: false,
       })
-      .select(["tokenId", "journeyId", "lotteryId", "walletAddress", "-_id"]);
+      .select(desiredFields);
   } else if (journeyId) {
     return lotteryEntriesModel
       .find({
         journeyId: journeyId,
         isPruned: false,
       })
-      .select(["tokenId", "journeyId", "lotteryId", "walletAddress", "-_id"]);
+      .select(desiredFields);
   }
-  return lotteryEntriesModel
-    .find({ isPruned: false })
-    .select(["tokenId", "journeyId", "lotteryId", "walletAddress", "-_id"]);
+  return lotteryEntriesModel.find({ isPruned: false }).select(desiredFields);
 };
 
 const pruneTokens = async (walletAddress) => {
