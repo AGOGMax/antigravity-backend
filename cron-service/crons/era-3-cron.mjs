@@ -6,6 +6,7 @@ import {
   pointsModel,
   lotteryEntriesModel,
   transfersCronTimestampModel,
+  lotteryResultsModel,
 } from "../models/models.mjs";
 import { fetchSecretsList } from "../../secrets-manager/secrets-manager.mjs";
 import {
@@ -16,6 +17,7 @@ import {
 import axios from "axios";
 import schedule from "node-schedule";
 import { chunkArray } from "../../helpers/helper.mjs";
+import { captureErrorWithContext } from "../start-crons.mjs";
 
 const secrets = await fetchSecretsList();
 
@@ -279,4 +281,63 @@ export const updateRecentTransfersAddress = async () => {
       new: true,
     }
   );
+};
+
+export const saveMissedLotteryResults = async () => {
+  const existingResults = await lotteryResultsModel.find({});
+  const existingResultsUri = existingResults.map((result) => result.uri);
+
+  const missedLotteryResultsQuery = `
+    query MyQuery {
+      lotteryResults(where: {uri_not_in: [${existingResultsUri
+        .map((uri) => `"${uri}"`)
+        .join(", ")}]}) {
+        uri
+      }
+    }
+  `;
+
+  const response = await axios.post(
+    secrets?.ERA_3_SUBGRAPH_URL,
+    {
+      query: missedLotteryResultsQuery,
+    },
+    {
+      headers: {
+        "Content-Type": "application/json",
+      },
+    }
+  );
+
+  const missedLotteryResults = response.data.data.lotteryResults.map(
+    (lotteryResult) => lotteryResult.uri
+  );
+
+  for (const url of missedLotteryResults) {
+    let lotteryData = {};
+    try {
+      lotteryData = (await axios.get(url))?.data;
+    } catch (e) {
+      console.error(
+        `Cron Service: Error while fetching lottery data from URI: ${url}: ${e}`
+      );
+      captureErrorWithContext(
+        e,
+        `Cron Service: Error while fetching lottery data from URI: ${url}`
+      );
+    }
+
+    try {
+      await axios.post(
+        `${secrets?.MASTER_SERVICE_URL}/api/lottery-result`,
+        lotteryData
+      );
+    } catch (e) {
+      console.error(`Cron Service: Error while posting lottery data: ${e}`);
+      captureErrorWithContext(
+        e,
+        `Cron Service: Error while posting lottery data: ${url}`
+      );
+    }
+  }
 };
