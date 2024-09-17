@@ -9,6 +9,7 @@ import {
   updateTimestampsFromContract,
   pruneTokenIds,
   updateRecentTransfersAddress,
+  saveMissedLotteryResults,
 } from "./crons/era-3-cron.mjs";
 import { invokeEra1Keeper } from "./crons/era-1-keeper.mjs";
 import { invokeEra2Keeper } from "./crons/era-2-keeper.mjs";
@@ -120,6 +121,15 @@ cron.schedule("0 * * * *", () => {
     updateRecentTransfersAddress();
   } catch (e) {
     captureErrorWithContext(e, "Error while updating fuel cell transfers.");
+  }
+});
+
+cron.schedule("0 * * * *", () => {
+  console.log("Cron Ran for saving missed lottery results.");
+  try {
+    saveMissedLotteryResults();
+  } catch (e) {
+    captureErrorWithContext(e, "Error while saving missed lottery results.");
   }
 });
 
