@@ -58,8 +58,21 @@ const saveLotteryResult = async (uri, lotteryEntries) => {
     lotteryBatchesWithAddress = [...lotteryBatchesWithAddress, ...updatedBatch];
   }
 
-  lotteryResultsModel.insertMany([{ uri, journeyId, lotteryId }]);
-  lotteryEntriesModel.insertMany(lotteryBatchesWithAddress);
+  try {
+    await lotteryResultsModel.insertMany([{ uri, journeyId, lotteryId }]);
+  } catch (error) {
+    if (error.code === 11000) {
+      console.log("Duplicate entry found for lottery result, skipping it.");
+    }
+  }
+
+  try {
+    await lotteryEntriesModel.insertMany(lotteryBatchesWithAddress);
+  } catch (error) {
+    if (error.code === 11000) {
+      console.log("Duplicate entry found for lottery entry, skipping it.");
+    }
+  }
 };
 
 const fetchLotteryResult = async (
