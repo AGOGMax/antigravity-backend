@@ -191,9 +191,16 @@ const fetchTokensUsingUniqueCombinations = async (walletAddress) => {
       lotteryId: combination.lotteryId,
     }));
 
-    const results = await lotteryEntriesModel
-      .find({ $or: queryArray })
-      .select(desiredFields);
+    let results = [];
+    try {
+      results = await lotteryEntriesModel
+        .find({ $or: queryArray })
+        .select(desiredFields);
+    } catch (error) {
+      console.error(
+        `Master Service: Error while fetching entries from unique combinations: ${error}`
+      );
+    }
     return results;
   }
   return [];
