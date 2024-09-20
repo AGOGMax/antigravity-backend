@@ -175,6 +175,7 @@ const fetchTokensUsingUniqueCombinations = async (walletAddress) => {
   if (walletAddress) {
     const tokens = await lotteryEntriesModel.find({
       walletAddress: walletAddress,
+      isPruned: false,
     });
 
     const uniqueCombinations = [
@@ -201,9 +202,22 @@ const fetchTokensUsingUniqueCombinations = async (walletAddress) => {
         `Master Service: Error while fetching entries from unique combinations: ${error}`
       );
     }
-    return results;
+
+    const resultsMapping = results.reduce(
+      (mapping, { tokenId, journeyId, lotteryId }) => {
+        const key = `${journeyId}_${lotteryId}`;
+        (mapping[key] = mapping[key] || []).push({
+          tokenId,
+          journeyId,
+          lotteryId,
+        });
+        return mapping;
+      },
+      {}
+    );
+    return resultsMapping;
   }
-  return [];
+  return {};
 };
 
 export {
