@@ -12,7 +12,7 @@ const fetchAndAttachAddresses = async (lotteryBatch) => {
 
   const usersQuery = `
       query MyQuery {
-        fuelCells(where: {tokenId_in: [${tokenIdsString}]}) {
+        fuelCells(where: {tokenId_in: [${tokenIdsString}]}, limit: 900) {
           items{
             tokenId
             owner {

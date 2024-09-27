@@ -223,7 +223,9 @@ const fetchPrunedTokenIds = async (tokenIds) => {
 
   const prunedWinningsQuery = `
       query MyQuery {
-        winningPruneds(where: { fuelCellId_in: [${fuelCellIds.join(",")}] }) {
+        winningPruneds(where: { fuelCellId_in: [${fuelCellIds.join(
+          ","
+        )}] }, limit: 900) {
           items {
             fuelCell {
               tokenId
