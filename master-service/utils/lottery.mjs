@@ -47,8 +47,37 @@ const fetchAndAttachAddresses = async (lotteryBatch) => {
   return updatedLotteryBatch;
 };
 
+const isLotteryResultIndexedOnSubgraph = async (journeyId, lotteryId) => {
+  const lotteryResultQuery = `
+  query MyQuery {
+    lotteryResults(where: {lotteryId: ${lotteryId}, journeyId: ${journeyId}}) {
+      uri
+    }
+  }
+    `;
+
+  const response = await axios.post(
+    secrets?.ERA_3_SUBGRAPH_URL,
+    {
+      query: lotteryResultQuery,
+    },
+    {
+      headers: {
+        "Content-Type": "application/json",
+      },
+    }
+  );
+
+  const lotteryResults = response?.data?.data?.lotteryResults;
+  return (lotteryResults?.length || 0) > 0;
+};
+
 const saveLotteryResult = async (uri, lotteryEntries) => {
   const { journeyId, lotteryId } = lotteryEntries[0];
+  const isLotteryResultPresentOnSubgraph =
+    await isLotteryResultIndexedOnSubgraph(journeyId, lotteryId);
+
+  if (!isLotteryResultPresentOnSubgraph) return;
 
   const lotteryBatches = chunkArray(lotteryEntries, 1000);
 
