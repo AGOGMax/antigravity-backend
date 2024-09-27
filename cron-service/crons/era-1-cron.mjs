@@ -23,11 +23,16 @@ const tokenContractAddressMapping = {
 };
 
 const fetchPulsechainTokenTransfers = async () => {
-  const response = await axios.get(
-    `${secrets[urlKeyMapping?.pulsechain]}/api/v2/addresses/${
-      secrets[tokenContractAddressMapping?.pulsechain]
-    }/token-transfers?filter=to`
-  );
+  let response = {};
+  try {
+    response = await axios.get(
+      `${secrets[urlKeyMapping?.pulsechain]}/api/v2/addresses/${
+        secrets[tokenContractAddressMapping?.pulsechain]
+      }/token-transfers?filter=to`
+    );
+  } catch (e) {
+    console.log("Error while fetching pulsechain token transfers: ", e);
+  }
 
   const modifiedResponse = response?.data?.items?.map((transfer) => {
     return {
@@ -47,11 +52,16 @@ const fetchPulsechainTokenTransfers = async () => {
 };
 
 const fetchBaseTokenTransfers = async () => {
-  const response = await axios.get(
-    `${secrets[urlKeyMapping?.base]}/api/v2/addresses/${
-      secrets[tokenContractAddressMapping?.base]
-    }/token-transfers?filter=to`
-  );
+  let response = {};
+  try {
+    response = await axios.get(
+      `${secrets[urlKeyMapping?.base]}/api/v2/addresses/${
+        secrets[tokenContractAddressMapping?.base]
+      }/token-transfers?filter=to`
+    );
+  } catch (e) {
+    console.log("Error while fetching base token transfers: ", e);
+  }
 
   const modifiedResponse = response?.data?.items?.map((transfer) => {
     return {
@@ -71,13 +81,18 @@ const fetchBaseTokenTransfers = async () => {
 };
 
 const fetchPulsechainTransactions = async () => {
-  const response = await axios.get(
-    `${
-      secrets[urlKeyMapping?.pulsechain]
-    }/api?module=account&action=txlist&address=${
-      secrets[tokenContractAddressMapping?.pulsechain]
-    }`
-  );
+  let response = {};
+  try {
+    response = await axios.get(
+      `${
+        secrets[urlKeyMapping?.pulsechain]
+      }/api?module=account&action=txlist&address=${
+        secrets[tokenContractAddressMapping?.pulsechain]
+      }`
+    );
+  } catch (e) {
+    console.log("Error while fetching pulsechain transactions: ", e);
+  }
 
   const modifiedResponse = response?.data?.result?.map((transfer) => {
     return {
@@ -96,11 +111,18 @@ const fetchPulsechainTransactions = async () => {
 };
 
 const fetchBaseTransactions = async () => {
-  const response = await axios.get(
-    `${secrets[urlKeyMapping?.base]}/api?module=account&action=txlist&address=${
-      secrets[tokenContractAddressMapping?.base]
-    }`
-  );
+  let response = {};
+  try {
+    response = await axios.get(
+      `${
+        secrets[urlKeyMapping?.base]
+      }/api?module=account&action=txlist&address=${
+        secrets[tokenContractAddressMapping?.base]
+      }`
+    );
+  } catch (e) {
+    console.log("Error while fetching base transactions: ", e);
+  }
 
   const modifiedResponse = response?.data?.result?.map((transfer) => {
     return {
@@ -142,11 +164,16 @@ const fetchGoogleSheetPoolMappings = async (blockchain) => {
 const fetchPoolAddressForToken = async (tokenAddress, network) => {
   const url = `${secrets?.COINGECKO_API_URL}/api/v3/onchain/search/pools?query=${tokenAddress}&network=${network}`;
 
-  const response = await axios.get(url, {
-    headers: {
-      [secrets?.COINGECKO_API_KEY_HEADER]: secrets?.COINGECKO_API_KEY,
-    },
-  });
+  let response = {};
+  try {
+    response = await axios.get(url, {
+      headers: {
+        [secrets?.COINGECKO_API_KEY_HEADER]: secrets?.COINGECKO_API_KEY,
+      },
+    });
+  } catch (e) {
+    console.log("Error while fetching pool address for token: ", e);
+  }
 
   const initialPool = response?.data?.data?.[0];
   const desiredPool = response?.data?.data?.reduce(
@@ -199,11 +226,16 @@ const fetchTokenPrice = async (
     url = `${secrets?.COINGECKO_API_URL}/api/v3/onchain/networks/${network}/pools/${poolAddress}/ohlcv/minute?before_timestamp=${timestamp}&token=quote`;
   }
 
-  const response = await axios.get(url, {
-    headers: {
-      [secrets?.COINGECKO_API_KEY_HEADER]: secrets?.COINGECKO_API_KEY,
-    },
-  });
+  let response = {};
+  try {
+    response = await axios.get(url, {
+      headers: {
+        [secrets?.COINGECKO_API_KEY_HEADER]: secrets?.COINGECKO_API_KEY,
+      },
+    });
+  } catch (e) {
+    console.log("Error while fetching OHLCV List: ", e);
+  }
 
   return {
     price: response?.data?.data?.attributes?.ohlcv_list?.[0]?.[1],
@@ -290,8 +322,14 @@ export const fetchContributions = async (blockchain) => {
 
   let pointsList = [];
 
-  const timestampResponse = await axios.get(secrets?.TIMESTAMP_API_LINK);
-  const timestamps = timestampResponse.data?.result;
+  let timestampResponse = {};
+  try {
+    timestampResponse = await axios.get(secrets?.TIMESTAMP_API_LINK);
+  } catch (e) {
+    console.log("Error while fetching timestamp from sanity: ", e);
+  }
+
+  const timestamps = timestampResponse?.data?.result;
 
   insertedContributions.forEach((contribution) => {
     const multiplier = getMultiplier(contribution.timestamp, 1, timestamps);
