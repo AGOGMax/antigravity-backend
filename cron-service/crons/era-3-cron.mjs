@@ -78,17 +78,29 @@ export const fetchContributions = async () => {
       }
     `;
 
-  const response = await axios.post(
-    secrets?.ERA_3_SUBGRAPH_URL,
-    {
-      query: contributionsQuery,
-    },
-    {
-      headers: {
-        "Content-Type": "application/json",
+  let response = {};
+  try {
+    response = await axios.post(
+      secrets?.ERA_3_SUBGRAPH_URL,
+      {
+        query: contributionsQuery,
       },
-    }
-  );
+      {
+        headers: {
+          "Content-Type": "application/json",
+        },
+      }
+    );
+  } catch (e) {
+    console.error(
+      "Cron Service: Error while fetching mints from subgraph: ",
+      e
+    );
+    captureErrorWithContext(
+      e,
+      "Cron Service: Error while fetching mints from subgraph."
+    );
+  }
 
   const contributions = response?.data?.data?.mints?.items;
 
@@ -139,17 +151,26 @@ export const updateTimestampsIfPaused = async () => {
   }
     `;
 
-  const response = await axios.post(
-    secrets?.ERA_3_SUBGRAPH_URL,
-    {
-      query: subgraphQuery,
-    },
-    {
-      headers: {
-        "Content-Type": "application/json",
+  let response = {};
+  try {
+    response = await axios.post(
+      secrets?.ERA_3_SUBGRAPH_URL,
+      {
+        query: subgraphQuery,
       },
-    }
-  );
+      {
+        headers: {
+          "Content-Type": "application/json",
+        },
+      }
+    );
+  } catch (e) {
+    console.error("Cron Service: Error while fetching JPM from subgraph: ", e);
+    captureErrorWithContext(
+      e,
+      "Cron Service: Error while fetching JPM from subgraph."
+    );
+  }
 
   const journeyPhaseManager =
     response?.data?.data?.journeyPhaseManagers?.items?.[0];
@@ -255,20 +276,32 @@ export const updateRecentTransfersAddress = async () => {
     }
   `;
 
-  const response = await axios.post(
-    secrets?.ERA_3_SUBGRAPH_URL,
-    {
-      query: transfersQuery,
-    },
-    {
-      headers: {
-        "Content-Type": "application/json",
+  let response = {};
+  try {
+    response = await axios.post(
+      secrets?.ERA_3_SUBGRAPH_URL,
+      {
+        query: transfersQuery,
       },
-    }
-  );
+      {
+        headers: {
+          "Content-Type": "application/json",
+        },
+      }
+    );
+  } catch (e) {
+    console.log(
+      "Cron Service: Error while fetching recent transfers from subgraph: ",
+      e
+    );
+    captureErrorWithContext(
+      e,
+      "Cron Service: Error while fetching recent transfers from subgraph."
+    );
+  }
 
-  const transfers = response.data.data.transfers.items;
-  const bulkOperations = transfers.map((transfer) => {
+  const transfers = response.data?.data?.transfers?.items;
+  const bulkOperations = transfers?.map((transfer) => {
     const { tokenId } = transfer.token;
     const newWalletAddress = transfer.to.address;
 
@@ -308,19 +341,31 @@ export const saveMissedLotteryResults = async () => {
     }
   `;
 
-  const response = await axios.post(
-    secrets?.ERA_3_SUBGRAPH_URL,
-    {
-      query: missedLotteryResultsQuery,
-    },
-    {
-      headers: {
-        "Content-Type": "application/json",
+  let response = {};
+  try {
+    response = await axios.post(
+      secrets?.ERA_3_SUBGRAPH_URL,
+      {
+        query: missedLotteryResultsQuery,
       },
-    }
-  );
+      {
+        headers: {
+          "Content-Type": "application/json",
+        },
+      }
+    );
+  } catch (e) {
+    console.log(
+      "Error while fetching missed lottery results from subgraph: ",
+      e
+    );
+    captureErrorWithContext(
+      e,
+      "Error while fetching missed lottery results from subgraph."
+    );
+  }
 
-  const missedLotteryResults = response.data.data.lotteryResults.items.map(
+  const missedLotteryResults = response.data?.data?.lotteryResults?.items?.map(
     (lotteryResult) => lotteryResult.uri
   );
 

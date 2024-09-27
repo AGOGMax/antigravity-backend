@@ -50,17 +50,22 @@ export const fetchEra3TimestampsAndMultipliers = async (walletAddress) => {
       }
     `;
 
-  const response = await axios.post(
-    secrets?.ERA_3_SUBGRAPH_URL,
-    {
-      query: timestampsQuery,
-    },
-    {
-      headers: {
-        "Content-Type": "application/json",
+  let response = {};
+  try {
+    response = await axios.post(
+      secrets?.ERA_3_SUBGRAPH_URL,
+      {
+        query: timestampsQuery,
       },
-    }
-  );
+      {
+        headers: {
+          "Content-Type": "application/json",
+        },
+      }
+    );
+  } catch (e) {
+    console.error("Error while fetching timestamp from JPM: ", e);
+  }
 
   const timestamps = response?.data?.data?.journeyPhaseManagers?.items?.[0];
 

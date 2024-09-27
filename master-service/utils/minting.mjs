@@ -36,17 +36,25 @@ export const verifyMinting = async (walletAddress) => {
     }
     `;
 
-  const response = await axios.post(
-    secrets?.ERA_3_SUBGRAPH_URL,
-    {
-      query: contributionsQuery,
-    },
-    {
-      headers: {
-        "Content-Type": "application/json",
+  let response = {};
+  try {
+    response = await axios.post(
+      secrets?.ERA_3_SUBGRAPH_URL,
+      {
+        query: contributionsQuery,
       },
-    }
-  );
+      {
+        headers: {
+          "Content-Type": "application/json",
+        },
+      }
+    );
+  } catch (e) {
+    console.error(
+      "Error while fetching minting from subgraph for verify minting: ",
+      e
+    );
+  }
 
   const contributions = response?.data?.data?.mints?.items;
   const newContributions = contributions.filter(

@@ -253,20 +253,25 @@ const fetchPrunedTokenIds = async (tokenIds) => {
       }
     `;
 
-  const response = await axios.post(
-    secrets?.ERA_3_SUBGRAPH_URL,
-    {
-      query: prunedWinningsQuery,
-    },
-    {
-      headers: {
-        "Content-Type": "application/json",
+  let response = {};
+  try {
+    response = await axios.post(
+      secrets?.ERA_3_SUBGRAPH_URL,
+      {
+        query: prunedWinningsQuery,
       },
-    }
-  );
+      {
+        headers: {
+          "Content-Type": "application/json",
+        },
+      }
+    );
+  } catch (e) {
+    console.error("Error while fetching pruned winnings from subgraph: ", e);
+  }
 
-  const winningsPruned = response.data.data.winningPruneds.items;
-  const prunedTokenIds = winningsPruned.map((winning) =>
+  const winningsPruned = response.data?.data?.winningPruneds?.items;
+  const prunedTokenIds = winningsPruned?.map((winning) =>
     parseInt(winning.fuelCell.tokenId)
   );
 

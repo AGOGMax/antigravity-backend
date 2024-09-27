@@ -23,20 +23,28 @@ const fetchAndAttachAddresses = async (lotteryBatch) => {
       }
     `;
 
-  const response = await axios.post(
-    secrets?.ERA_3_SUBGRAPH_URL,
-    {
-      query: usersQuery,
-    },
-    {
-      headers: {
-        "Content-Type": "application/json",
+  let response = {};
+  try {
+    response = await axios.post(
+      secrets?.ERA_3_SUBGRAPH_URL,
+      {
+        query: usersQuery,
       },
-    }
-  );
+      {
+        headers: {
+          "Content-Type": "application/json",
+        },
+      }
+    );
+  } catch (e) {
+    console.error(
+      "Master Service: Error while fetching address for lottery entries: ",
+      e
+    );
+  }
 
-  const fuelCells = response.data.data.fuelCells.items;
-  const tokenIdToAddressMap = fuelCells.reduce((acc, fuelCell) => {
+  const fuelCells = response.data?.data?.fuelCells?.items;
+  const tokenIdToAddressMap = fuelCells?.reduce((acc, fuelCell) => {
     acc[fuelCell.tokenId] = fuelCell.owner.address;
     return acc;
   }, {});
@@ -59,17 +67,25 @@ const isLotteryResultIndexedOnSubgraph = async (journeyId, lotteryId) => {
   }
     `;
 
-  const response = await axios.post(
-    secrets?.ERA_3_SUBGRAPH_URL,
-    {
-      query: lotteryResultQuery,
-    },
-    {
-      headers: {
-        "Content-Type": "application/json",
+  let response = {};
+  try {
+    response = await axios.post(
+      secrets?.ERA_3_SUBGRAPH_URL,
+      {
+        query: lotteryResultQuery,
       },
-    }
-  );
+      {
+        headers: {
+          "Content-Type": "application/json",
+        },
+      }
+    );
+  } catch (e) {
+    console.error(
+      "Master Service: Error while fetching lotter result from subgraph: ",
+      e
+    );
+  }
 
   const lotteryResults = response?.data?.data?.lotteryResults;
   return (lotteryResults?.length || 0) > 0;
