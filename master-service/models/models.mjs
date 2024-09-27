@@ -25,6 +25,12 @@ lotteryEntriesSchema.index(
 );
 const lotteryEntriesModel = model("lotteryEntries", lotteryEntriesSchema);
 
+const evilTokensBlockSchema = new Schema(
+  { createdAt: { type: Date, default: Date.now, expires: 60 } },
+  { strict: false }
+);
+const evilTokensBlockModel = model("evilTokensBlock", evilTokensBlockSchema);
+
 export {
   contributionsModel,
   pointsModel,
@@ -32,4 +38,5 @@ export {
   era3TimestampsModel,
   lotteryResultsModel,
   lotteryEntriesModel,
+  evilTokensBlockModel,
 };

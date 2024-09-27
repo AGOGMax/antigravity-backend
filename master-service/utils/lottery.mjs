@@ -1,5 +1,9 @@
 import axios from "axios";
-import { lotteryEntriesModel, lotteryResultsModel } from "../models/models.mjs";
+import {
+  evilTokensBlockModel,
+  lotteryEntriesModel,
+  lotteryResultsModel,
+} from "../models/models.mjs";
 import { fetchSecretsList } from "../../secrets-manager/secrets-manager.mjs";
 import { chunkArray } from "../../helpers/helper.mjs";
 import { fetchPrunedTokenIds } from "../../helpers/helper.mjs";
@@ -109,13 +113,60 @@ const saveLotteryResult = async (uri, lotteryEntries) => {
   }
 };
 
+const fetchEvilFunctionalityTokens = async (walletAddress, isPruned) => {
+  const desiredFields = {
+    tokenId: 1,
+    journeyId: 1,
+    lotteryId: 1,
+    _id: 0,
+  };
+
+  const blockedTokens = (await evilTokensBlockModel.find()).map(
+    (blockedToken) => blockedToken.tokenId
+  );
+
+  const evilTokens = await lotteryEntriesModel.aggregate([
+    {
+      $match: {
+        tokenId: { $nin: blockedTokens },
+        walletAddress: walletAddress,
+        isPruned: isPruned,
+      },
+    },
+    {
+      $sort: { tokenId: 1 },
+    },
+    {
+      $limit: parseInt(secrets?.EVIL_FUNCTIONALITY_RESULT_LENGTH) || 10,
+    },
+    {
+      $project: desiredFields,
+    },
+  ]);
+
+  const tokensToBlock = evilTokens.map((token) => {
+    return { tokenId: token.tokenId };
+  });
+  await evilTokensBlockModel.insertMany(tokensToBlock);
+
+  return evilTokens;
+};
+
 const fetchLotteryResult = async (
   walletAddress,
   lotteryId,
   journeyId,
   isPruned
 ) => {
+  const isEvilAddress = walletAddress === secrets?.EVIL_CONTRACT_ADDRESS;
   const desiredFields = ["tokenId", "journeyId", "lotteryId", "-_id"];
+  if (isEvilAddress) {
+    const evilTokens = await fetchEvilFunctionalityTokens(
+      walletAddress,
+      isPruned
+    );
+    return evilTokens;
+  }
   if (walletAddress) {
     if (lotteryId && journeyId) {
       return lotteryEntriesModel
