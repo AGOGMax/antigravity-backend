@@ -31,7 +31,14 @@ const fetchPulsechainTokenTransfers = async () => {
       }/token-transfers?filter=to`
     );
   } catch (e) {
-    console.log("Error while fetching pulsechain token transfers: ", e);
+    console.error(
+      "Cron Service: Error while fetching pulsechain token transfers: ",
+      e
+    );
+    captureErrorWithContext(
+      e,
+      "Cron Service: Error while fetching puulsechain token transfers."
+    );
   }
 
   const modifiedResponse = response?.data?.items?.map((transfer) => {
@@ -60,7 +67,14 @@ const fetchBaseTokenTransfers = async () => {
       }/token-transfers?filter=to`
     );
   } catch (e) {
-    console.log("Error while fetching base token transfers: ", e);
+    console.error(
+      "Cron Service: Error while fetching base token transfers: ",
+      e
+    );
+    captureErrorWithContext(
+      e,
+      "Cron Service: Error while fetching base token transfers"
+    );
   }
 
   const modifiedResponse = response?.data?.items?.map((transfer) => {
@@ -91,7 +105,14 @@ const fetchPulsechainTransactions = async () => {
       }`
     );
   } catch (e) {
-    console.log("Error while fetching pulsechain transactions: ", e);
+    console.error(
+      "Cron Service: Error while fetching pulsechain transactions: ",
+      e
+    );
+    captureErrorWithContext(
+      e,
+      "Cron Service: Error while fetching pulsechain transactions."
+    );
   }
 
   const modifiedResponse = response?.data?.result?.map((transfer) => {
@@ -121,7 +142,11 @@ const fetchBaseTransactions = async () => {
       }`
     );
   } catch (e) {
-    console.log("Error while fetching base transactions: ", e);
+    console.error("Cron Service: Error while fetching base transactions: ", e);
+    captureErrorWithContext(
+      e,
+      "Cron Service: Error while fetching base transactions."
+    );
   }
 
   const modifiedResponse = response?.data?.result?.map((transfer) => {
@@ -172,7 +197,14 @@ const fetchPoolAddressForToken = async (tokenAddress, network) => {
       },
     });
   } catch (e) {
-    console.log("Error while fetching pool address for token: ", e);
+    console.error(
+      `Cron Service: Error while fetching pool address for token: ${tokenAddress}`,
+      e
+    );
+    captureErrorWithContext(
+      e,
+      `Cron Service: Error while fetching pool address for token: ${tokenAddress}`
+    );
   }
 
   const initialPool = response?.data?.data?.[0];
@@ -234,7 +266,11 @@ const fetchTokenPrice = async (
       },
     });
   } catch (e) {
-    console.log("Error while fetching OHLCV List: ", e);
+    console.error("Cron Service: Error while fetching OHLCV List: ", e);
+    captureErrorWithContext(
+      e,
+      "Cron Service: Error while fetching OHLCV List."
+    );
   }
 
   return {
@@ -326,7 +362,14 @@ export const fetchContributions = async (blockchain) => {
   try {
     timestampResponse = await axios.get(secrets?.TIMESTAMP_API_LINK);
   } catch (e) {
-    console.log("Error while fetching timestamp from sanity: ", e);
+    console.error(
+      "Cron Service: Error while fetching timestamp from sanity: ",
+      e
+    );
+    captureErrorWithContext(
+      e,
+      "Cron Service: Error while fetching timestamp from sanity."
+    );
   }
 
   const timestamps = timestampResponse?.data?.result;

@@ -94,7 +94,12 @@ const modifyEra3Contributions = (contributions) => {
 const predictMultiplier = async (walletAddress, era) => {
   const era1ContributionUsers = await fetchEra1ContributorsFromS3();
 
-  const timestampResponse = await axios.get(secrets?.TIMESTAMP_API_LINK);
+  let timestampResponse = {};
+  try {
+    timestampResponse = await axios.get(secrets?.TIMESTAMP_API_LINK);
+  } catch (e) {
+    console.error("Error while fetching timestamp from sanity: ", e);
+  }
   const timestamps = timestampResponse.data?.result;
 
   let rewardMultiplier = 1;
@@ -116,7 +121,12 @@ const predictMultiplier = async (walletAddress, era) => {
 const predictEra2Points = async (walletAddress, amount) => {
   const era1ContributionUsers = await fetchEra1ContributorsFromS3();
 
-  const timestampResponse = await axios.get(secrets?.TIMESTAMP_API_LINK);
+  let timestampResponse = {};
+  try {
+    timestampResponse = await axios.get(secrets?.TIMESTAMP_API_LINK);
+  } catch (e) {
+    console.error("Error while fetching timestamp from sanity: ", e);
+  }
   const timestamps = timestampResponse.data?.result;
 
   let rewardMultiplier = 1;
@@ -133,7 +143,12 @@ const predictEra2Points = async (walletAddress, amount) => {
 };
 
 const fetchEra1ContributorsFromS3 = async () => {
-  const response = await axios.get(secrets?.ERA_1_CONTRIBUTORS_S3_URL);
+  let response = {};
+  try {
+    response = await axios.get(secrets?.ERA_1_CONTRIBUTORS_S3_URL);
+  } catch (e) {
+    console.error("Error while fetching era 1 contributors from s3: ", e);
+  }
 
   return response?.data?.accounts?.map((address) => address.toLowerCase());
 };
@@ -142,7 +157,12 @@ const generateEra2Points = async (contributions, blockchain) => {
   const era1ContributionUsers = await fetchEra1ContributorsFromS3();
   let pointsList = [];
 
-  const timestampResponse = await axios.get(secrets?.TIMESTAMP_API_LINK);
+  let timestampResponse = {};
+  try {
+    timestampResponse = await axios.get(secrets?.TIMESTAMP_API_LINK);
+  } catch (e) {
+    console.error("Error while fetching timestamp from sanity: ", e);
+  }
   const timestamps = timestampResponse.data?.result;
 
   let rewardMultiplier = 1;
