@@ -78,7 +78,7 @@ export const fetchEra3TimestampsAndMultipliers = async (walletAddress) => {
     isJourneyPaused: timestamps?.isPaused,
     nextJourneyTimestamp: timestamps?.nextJourneyStartTime,
     mintEndTimestamp:
-      timestamps?.currentPhaseId === 1 ? timestamps?.nextPhaseStartTime : "",
+      timestamps?.currentPhaseId === "1" ? timestamps?.nextPhaseStartTime : "",
     multiplier,
     rewardMultiplier,
   };
