@@ -5,6 +5,7 @@ import {
   generateEra2Points,
 } from "../../helpers/helper.mjs";
 import { pointsModel, contributionsModel } from "../models/models.mjs";
+import { captureErrorWithContext } from "../start-crons.mjs";
 
 const secrets = await fetchSecretsList();
 
@@ -34,17 +35,23 @@ export const fetchContributions = async (blockchain) => {
       ? secrets?.ERA_2_BASE_SUBGRAPH_URL
       : secrets?.ERA_2_PULSECHAIN_SUBGRAPH_URL;
 
-  const response = await axios.post(
-    url,
-    {
-      query: contributionsQuery,
-    },
-    {
-      headers: {
-        "Content-Type": "application/json",
+  let response = {};
+  try {
+    response = await axios.post(
+      url,
+      {
+        query: contributionsQuery,
       },
-    }
-  );
+      {
+        headers: {
+          "Content-Type": "application/json",
+        },
+      }
+    );
+  } catch (e) {
+    console.error("Error while fetching era-2 contributions: ", e);
+    captureErrorWithContext(e, "Error while fetching era-e contributions.");
+  }
 
   const contributions = response?.data?.data?.mines;
 

@@ -15,11 +15,16 @@ export const fetchTokenPrice = async (
     url = `${secrets?.COINGECKO_API_URL}/api/v3/onchain/networks/${network}/pools/${poolAddress}/ohlcv/minute?before_timestamp=${timestamp}&token=quote`;
   }
 
-  const response = await axios.get(url, {
-    headers: {
-      [secrets?.COINGECKO_API_KEY_HEADER]: secrets?.COINGECKO_API_KEY,
-    },
-  });
+  let response = {};
+  try {
+    response = await axios.get(url, {
+      headers: {
+        [secrets?.COINGECKO_API_KEY_HEADER]: secrets?.COINGECKO_API_KEY,
+      },
+    });
+  } catch (e) {
+    console.error("Error while fetching token price from CoinGecko: ", e);
+  }
 
   return {
     price: response?.data?.data?.attributes?.ohlcv_list?.[0]?.[1],

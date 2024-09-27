@@ -39,17 +39,22 @@ export const verifyMining = async (walletAddress, blockchain) => {
       ? secrets?.ERA_2_BASE_SUBGRAPH_URL
       : secrets?.ERA_2_PULSECHAIN_SUBGRAPH_URL;
 
-  const response = await axios.post(
-    url,
-    {
-      query: contributionsQuery,
-    },
-    {
-      headers: {
-        "Content-Type": "application/json",
+  let response = {};
+  try {
+    response = await axios.post(
+      url,
+      {
+        query: contributionsQuery,
       },
-    }
-  );
+      {
+        headers: {
+          "Content-Type": "application/json",
+        },
+      }
+    );
+  } catch (e) {
+    console.error("Error while fetching minings for verify mining: ", e);
+  }
 
   const contributions = response?.data?.data?.mines;
   const newContributions = contributions.filter(

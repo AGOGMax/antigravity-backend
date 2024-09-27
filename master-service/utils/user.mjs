@@ -73,17 +73,22 @@ const fetchUserFromSubgraph = async (walletAddress, blockchain, era) => {
       ? secrets?.ERA_2_BASE_SUBGRAPH_URL
       : secrets?.ERA_2_PULSECHAIN_SUBGRAPH_URL;
 
-  const response = await axios.post(
-    url,
-    {
-      query: userQuery,
-    },
-    {
-      headers: {
-        "Content-Type": "application/json",
+  let response = {};
+  try {
+    response = await axios.post(
+      url,
+      {
+        query: userQuery,
       },
-    }
-  );
+      {
+        headers: {
+          "Content-Type": "application/json",
+        },
+      }
+    );
+  } catch (e) {
+    console.error("Error while fetching user from subgraph: ", e);
+  }
 
   const userData = response?.data?.data?.users?.[0];
   return era === 1
