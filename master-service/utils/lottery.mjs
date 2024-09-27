@@ -158,7 +158,8 @@ const fetchLotteryResult = async (
   journeyId,
   isPruned
 ) => {
-  const isEvilAddress = walletAddress === secrets?.EVIL_CONTRACT_ADDRESS;
+  const isEvilAddress =
+    walletAddress === secrets?.EVIL_CONTRACT_ADDRESS?.toLowerCase();
   const desiredFields = ["tokenId", "journeyId", "lotteryId", "-_id"];
   if (isEvilAddress) {
     const evilTokens = await fetchEvilFunctionalityTokens(
