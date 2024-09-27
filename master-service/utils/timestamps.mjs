@@ -1,8 +1,8 @@
-import { era3TimestampsModel } from "../models/models.mjs";
 import { getEra3Multiplier } from "../../helpers/helper.mjs";
 import { contributionsModel } from "../models/models.mjs";
 import { fetchEra1ContributorsFromS3 } from "../../helpers/helper.mjs";
 import { fetchSecretsList } from "../../secrets-manager/secrets-manager.mjs";
+import axios from "axios";
 
 const secrets = await fetchSecretsList();
 
@@ -36,20 +36,44 @@ const getRewardMultiplier = async (walletAddress) => {
 };
 
 export const fetchEra3TimestampsAndMultipliers = async (walletAddress) => {
-  const timestamps = await era3TimestampsModel.findOne({
-    identifier: "era3Timestamps",
-  });
+  const timestampsQuery = `
+      query MyQuery {
+        journeyPhaseManagers {
+          items {
+            currentJourneyId
+            currentPhaseId
+            nextJourneyStartTime
+            nextPhaseStartTime
+            isPaused
+          }
+        }
+      }
+    `;
+
+  const response = await axios.post(
+    secrets?.ERA_3_SUBGRAPH_URL,
+    {
+      query: timestampsQuery,
+    },
+    {
+      headers: {
+        "Content-Type": "application/json",
+      },
+    }
+  );
+
+  const timestamps = response?.data?.data?.journeyPhaseManagers?.items?.[0];
 
   const multiplier = getEra3Multiplier(timestamps?.currentJourney);
   const rewardMultiplier = await getRewardMultiplier(walletAddress);
 
   return {
-    currentJourney: timestamps?.currentJourney,
-    currentPhase: timestamps?.currentPhase,
-    isJourneyPaused: timestamps?.isJourneyPaused,
-    nextJourneyTimestamp: timestamps?.nextJourneyTimestamp,
+    currentJourney: timestamps?.currentJourneyId,
+    currentPhase: timestamps?.currentPhaseId,
+    isJourneyPaused: timestamps?.isPaused,
+    nextJourneyTimestamp: timestamps?.nextJourneyStartTime,
     mintEndTimestamp:
-      timestamps?.currentPhase === 1 ? timestamps?.nextPhaseTimestamp : "",
+      timestamps?.currentPhaseId === 1 ? timestamps?.nextPhaseStartTime : "",
     multiplier,
     rewardMultiplier,
   };
