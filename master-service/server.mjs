@@ -353,8 +353,19 @@ app.post("/api/era-3-timestamps-multipliers", async (req, res) => {
 app.post("/api/lottery-result", async (req, res) => {
   try {
     const { uri, lotteryEntries } = req.body;
-    await saveLotteryResult(uri, lotteryEntries);
     res.json({ success: true });
+
+    const intervalId = setInterval(() => {
+      console.info(`Master Service: Interval started for ${uri}.`);
+      saveLotteryResult(uri, lotteryEntries, intervalId);
+    }, parseInt(secrets?.LOTTERY_RESULT_RETRY_INTERVAL));
+
+    setTimeout(() => {
+      clearInterval(intervalId);
+      console.info(
+        `Master Service: Interval cleared by timeout after ${secrets?.LOTTERY_RESULT_TIMEOUT_VALUE} seconds.`
+      );
+    }, parseInt(secrets?.LOTTERY_RESULT_TIMEOUT_VALUE));
   } catch (error) {
     console.error(`Master Service: Lottery Result Save Error: ${error}`);
     captureErrorWithContext(error, "Master Service: Lottery Result Save Error");

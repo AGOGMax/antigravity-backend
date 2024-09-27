@@ -97,12 +97,19 @@ const isLotteryResultIndexedOnSubgraph = async (journeyId, lotteryId) => {
   return (lotteryResults?.length || 0) > 0;
 };
 
-const saveLotteryResult = async (uri, lotteryEntries) => {
+const saveLotteryResult = async (uri, lotteryEntries, intervalId) => {
   const { journeyId, lotteryId } = lotteryEntries[0];
   const isLotteryResultPresentOnSubgraph =
     await isLotteryResultIndexedOnSubgraph(journeyId, lotteryId);
 
-  if (!isLotteryResultPresentOnSubgraph) return;
+  if (!isLotteryResultPresentOnSubgraph) {
+    console.log(
+      `Master Service: J-${journeyId} L-${lotteryId} result not found on subgraph.`
+    );
+    return;
+  }
+
+  clearInterval(intervalId);
 
   const lotteryBatches = chunkArray(lotteryEntries, 900);
 
