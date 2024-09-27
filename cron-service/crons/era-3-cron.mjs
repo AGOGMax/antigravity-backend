@@ -63,14 +63,16 @@ export const fetchContributions = async () => {
 
   const contributionsQuery = `
     query MyQuery {
-        mints(orderDirection: desc, orderBy: transactionHash) {
-          amount
-          id
-          timestamp
-          transactionHash
-          journeyId
-          user {
-            address
+        mints(orderDirection: "desc", orderBy: "transactionHash") {
+          items{
+            amount
+            id
+            timestamp
+            transactionHash
+            journeyId
+            user {
+              address
+            }
           }
         }
       }
@@ -88,7 +90,7 @@ export const fetchContributions = async () => {
     }
   );
 
-  const contributions = response?.data?.data?.mints;
+  const contributions = response?.data?.data?.mints?.items;
 
   const newContributions = contributions.filter(
     (contribution) => !dbTransactionHashes.has(contribution.transactionHash)
@@ -128,9 +130,11 @@ export const updateTimestampsIfPaused = async () => {
   const subgraphQuery = `
   query MyQuery {
     journeyPhaseManagers {
-      isPaused
-      id
-      recentPauseStartTime
+      items {
+        isPaused
+        id
+        recentPauseStartTime
+      }
     }
   }
     `;
@@ -147,7 +151,8 @@ export const updateTimestampsIfPaused = async () => {
     }
   );
 
-  const journeyPhaseManager = response?.data?.data?.journeyPhaseManagers?.[0];
+  const journeyPhaseManager =
+    response?.data?.data?.journeyPhaseManagers?.items?.[0];
 
   const isJourneyPaused = journeyPhaseManager?.isPaused;
   const recentPauseStartTime = journeyPhaseManager?.recentPauseStartTime;
@@ -217,30 +222,34 @@ export const updateRecentTransfersAddress = async () => {
   const transfersQuery = lastTimestamp
     ? `
     query MyQuery {
-      transfers(where: {timestamp_gte: ${lastTimestamp}}) {
-        from {
-          address
-        }
-        token {
-          tokenId
-        }
-        to {
-          address
+      transfers(where: {timestamp_gte: "${lastTimestamp}"}) {
+        items{
+          from {
+            address
+          }
+          token {
+            tokenId
+          }
+          to {
+            address
+          }
         }
       }
     }
   `
     : `
     query MyQuery {
-      transfers{
-        from {
-          address
-        }
-        token {
-          tokenId
-        }
-        to {
-          address
+      transfers {
+        items {
+          from {
+            address
+          }
+          token {
+            tokenId
+          }
+          to {
+            address
+          }
         }
       }
     }
@@ -258,7 +267,7 @@ export const updateRecentTransfersAddress = async () => {
     }
   );
 
-  const transfers = response.data.data.transfers;
+  const transfers = response.data.data.transfers.items;
   const bulkOperations = transfers.map((transfer) => {
     const { tokenId } = transfer.token;
     const newWalletAddress = transfer.to.address;
@@ -292,7 +301,9 @@ export const saveMissedLotteryResults = async () => {
       lotteryResults(where: {uri_not_in: [${existingResultsUri
         .map((uri) => `"${uri}"`)
         .join(", ")}]}) {
-        uri
+          items{
+            uri
+          }
       }
     }
   `;
@@ -309,7 +320,7 @@ export const saveMissedLotteryResults = async () => {
     }
   );
 
-  const missedLotteryResults = response.data.data.lotteryResults.map(
+  const missedLotteryResults = response.data.data.lotteryResults.items.map(
     (lotteryResult) => lotteryResult.uri
   );
 

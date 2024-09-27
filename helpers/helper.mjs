@@ -216,15 +216,21 @@ const chunkArray = (array, size) => {
 };
 
 const fetchPrunedTokenIds = async (tokenIds) => {
+  const fuelCellContractAddress = secrets?.FUEL_CELL_CONTRACT_ADDRESS;
+  const fuelCellIds = tokenIds.map(
+    (tokenId) => `"${fuelCellContractAddress.concat(tokenId.toString())}"`
+  );
+
   const prunedWinningsQuery = `
-        query MyQuery {
-          winningPruneds(where: {fuelCell_: {tokenId_in: [${tokenIds.join(
-            ","
-          )}]}}) {
+      query MyQuery {
+        winningPruneds(where: { fuelCellId_in: [${fuelCellIds.join(",")}] }) {
+          items {
             fuelCell {
               tokenId
             }
-        }}
+          }
+        }
+      }
     `;
 
   const response = await axios.post(
@@ -239,7 +245,7 @@ const fetchPrunedTokenIds = async (tokenIds) => {
     }
   );
 
-  const winningsPruned = response.data.data.winningPruneds;
+  const winningsPruned = response.data.data.winningPruneds.items;
   const prunedTokenIds = winningsPruned.map((winning) =>
     parseInt(winning.fuelCell.tokenId)
   );
