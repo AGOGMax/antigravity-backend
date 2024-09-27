@@ -1,10 +1,6 @@
 import axios from "axios";
 import { fetchSecretsList } from "../../secrets-manager/secrets-manager.mjs";
-import {
-  pointsModel,
-  contributionsModel,
-  era3TimestampsModel,
-} from "../models/models.mjs";
+import { pointsModel, contributionsModel } from "../models/models.mjs";
 import {
   generateEra3Points,
   modifyEra3Contributions,
