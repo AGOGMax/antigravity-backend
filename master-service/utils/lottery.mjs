@@ -8,16 +8,19 @@ const secrets = await fetchSecretsList();
 
 const fetchAndAttachAddresses = async (lotteryBatch) => {
   const tokenIds = lotteryBatch.map((item) => item.tokenId);
+  const tokenIdsString = tokenIds.map((id) => `"${id}"`).join(",");
 
   const usersQuery = `
-        query MyQuery {
-            fuelCells(where: {tokenId_in: [${tokenIds.join(",")}]}) {
+      query MyQuery {
+        fuelCells(where: {tokenId_in: [${tokenIdsString}]}) {
+          items{
             tokenId
             owner {
                 address
             }
-            }
+          }
         }
+      }
     `;
 
   const response = await axios.post(
@@ -32,7 +35,7 @@ const fetchAndAttachAddresses = async (lotteryBatch) => {
     }
   );
 
-  const fuelCells = response.data.data.fuelCells;
+  const fuelCells = response.data.data.fuelCells.items;
   const tokenIdToAddressMap = fuelCells.reduce((acc, fuelCell) => {
     acc[fuelCell.tokenId] = fuelCell.owner.address;
     return acc;
