@@ -64,20 +64,20 @@ cron.schedule("*/15 * * * *", () => {
   }
 });
 
-cron.schedule("0 */6 * * *", () => {
-  console.log("Cron Ran for Era 3 Timestamps from Contract");
-  try {
-    updateTimestampsFromContract();
-  } catch (e) {
-    captureErrorWithContext(
-      e,
-      "Error while running update timestamps from contract cron."
-    );
-  }
-});
+// cron.schedule("0 */6 * * *", () => {
+//   console.log("Cron Ran for Era 3 Timestamps from Contract");
+//   try {
+//     updateTimestampsFromContract();
+//   } catch (e) {
+//     captureErrorWithContext(
+//       e,
+//       "Error while running update timestamps from contract cron."
+//     );
+//   }
+// });
 
 cron.schedule("*/2 * * * *", () => {
-  console.log("Cron Ran for Era-3");
+  console.log("Cron Ran for Era-3 Contributions");
   try {
     fetchEra3Contributions();
   } catch (e) {
@@ -85,26 +85,26 @@ cron.schedule("*/2 * * * *", () => {
   }
 });
 
-cron.schedule("*/2 * * * *", () => {
-  console.log("Cron Ran for Era-3: Check for Paused Journey from Subgraph");
-  try {
-    updateTimestampsIfPaused();
-  } catch (e) {
-    captureErrorWithContext(
-      e,
-      "Error while running timestamps from subgraph cron."
-    );
-  }
-});
+// cron.schedule("*/2 * * * *", () => {
+//   console.log("Cron Ran for Era-3: Check for Paused Journey from Subgraph");
+//   try {
+//     updateTimestampsIfPaused();
+//   } catch (e) {
+//     captureErrorWithContext(
+//       e,
+//       "Error while running timestamps from subgraph cron."
+//     );
+//   }
+// });
 
-cron.schedule("0 */6 * * *", () => {
-  console.log("Cron Ran for scheduling timestamp update for journeys");
-  try {
-    scheduleTimestampUpdates();
-  } catch (e) {
-    captureErrorWithContext(e, "Error while running timestamp scheduler cron.");
-  }
-});
+// cron.schedule("0 */6 * * *", () => {
+//   console.log("Cron Ran for scheduling timestamp update for journeys");
+//   try {
+//     scheduleTimestampUpdates();
+//   } catch (e) {
+//     captureErrorWithContext(e, "Error while running timestamp scheduler cron.");
+//   }
+// });
 
 cron.schedule("0 * * * *", () => {
   console.log("Cron Ran for pruning token IDs.");
@@ -138,6 +138,6 @@ schedule.scheduleJob(era2KeeperDate, invokeEra2Keeper);
 
 setInterval(() => {}, 1000);
 
-updateTimestampsFromContract();
+// updateTimestampsFromContract();
 
 export { captureErrorWithContext };
