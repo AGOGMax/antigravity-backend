@@ -198,7 +198,7 @@ export const pruneTokenIds = async () => {
   const unprunedTokens = await lotteryEntriesModel.find({ isPruned: false });
   const tokenIds = unprunedTokens.map((token) => token.tokenId);
 
-  const tokenIdsBatches = chunkArray(tokenIds, 1000);
+  const tokenIdsBatches = chunkArray(tokenIds, 900);
 
   let prunedTokenIds = [];
   for (const batch of tokenIdsBatches) {

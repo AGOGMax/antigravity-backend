@@ -53,8 +53,10 @@ const fetchAndAttachAddresses = async (lotteryBatch) => {
 const isLotteryResultIndexedOnSubgraph = async (journeyId, lotteryId) => {
   const lotteryResultQuery = `
   query MyQuery {
-    lotteryResults(where: {lotteryId: ${lotteryId}, journeyId: ${journeyId}}) {
-      uri
+    lotteryResults(where: { lotteryId: "${lotteryId}", journeyId: "${journeyId}" }) {
+      items {
+        uri
+      }
     }
   }
     `;
@@ -71,7 +73,7 @@ const isLotteryResultIndexedOnSubgraph = async (journeyId, lotteryId) => {
     }
   );
 
-  const lotteryResults = response?.data?.data?.lotteryResults;
+  const lotteryResults = response?.data?.data?.lotteryResults?.items;
   return (lotteryResults?.length || 0) > 0;
 };
 
@@ -82,7 +84,7 @@ const saveLotteryResult = async (uri, lotteryEntries) => {
 
   if (!isLotteryResultPresentOnSubgraph) return;
 
-  const lotteryBatches = chunkArray(lotteryEntries, 1000);
+  const lotteryBatches = chunkArray(lotteryEntries, 900);
 
   let lotteryBatchesWithAddress = [];
   for (const batch of lotteryBatches) {
@@ -187,7 +189,7 @@ const pruneTokens = async (walletAddress) => {
   });
 
   const tokenIds = tokens.map((token) => token.tokenId);
-  const tokenIdsBatches = chunkArray(tokenIds, 1000);
+  const tokenIdsBatches = chunkArray(tokenIds, 900);
 
   let prunedTokenIds = [];
   for (const batch of tokenIdsBatches) {
