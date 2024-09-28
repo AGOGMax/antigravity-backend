@@ -377,17 +377,18 @@ app.get("/api/lottery-result", async (req, res) => {
   try {
     const { walletAddress, lotteryId, journeyId, isPruned } = req.query;
     const isPrunedBool = isPruned === "true";
+    const lowerCaseWalletAddress = walletAddress?.toLowerCase();
 
-    const tokenResults = await fetchTokensUsingUniqueCombinations(
-      walletAddress?.toLowerCase()
-    );
+    const [tokenResults, lotteryResults] = await Promise.all([
+      fetchTokensUsingUniqueCombinations(lowerCaseWalletAddress),
+      fetchLotteryResult(
+        lowerCaseWalletAddress,
+        parseInt(lotteryId),
+        parseInt(journeyId),
+        isPrunedBool
+      ),
+    ]);
 
-    const lotteryResults = await fetchLotteryResult(
-      walletAddress?.toLowerCase(),
-      parseInt(lotteryId),
-      parseInt(journeyId),
-      isPrunedBool
-    );
     res.json({
       lotteryResult: lotteryResults,
       uniqueCombinationTokens: tokenResults,
