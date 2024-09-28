@@ -102,7 +102,7 @@ export const fetchContributions = async () => {
     );
   }
 
-  const contributions = response?.data?.data?.mints?.items;
+  const contributions = response?.data?.data?.mints?.items || [];
 
   const newContributions = contributions.filter(
     (contribution) => !dbTransactionHashes.has(contribution.transactionHash)
@@ -300,7 +300,7 @@ export const updateRecentTransfersAddress = async () => {
     );
   }
 
-  const transfers = response.data?.data?.transfers?.items;
+  const transfers = response.data?.data?.transfers?.items || [];
   const bulkOperations = transfers?.map((transfer) => {
     const { tokenId } = transfer.token;
     const newWalletAddress = transfer.to.address;
