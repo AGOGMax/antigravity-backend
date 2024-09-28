@@ -56,7 +56,7 @@ export const verifyMinting = async (walletAddress) => {
     );
   }
 
-  const contributions = response?.data?.data?.mints?.items;
+  const contributions = response?.data?.data?.mints?.items || [];
   const newContributions = contributions.filter(
     (contribution) => !dbTransactionHashes.has(contribution.transactionHash)
   );

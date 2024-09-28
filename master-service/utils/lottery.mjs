@@ -47,7 +47,7 @@ const fetchAndAttachAddresses = async (lotteryBatch) => {
     );
   }
 
-  const fuelCells = response.data?.data?.fuelCells?.items;
+  const fuelCells = response.data?.data?.fuelCells?.items || [];
   const tokenIdToAddressMap = fuelCells?.reduce((acc, fuelCell) => {
     acc[fuelCell.tokenId] = fuelCell.owner.address;
     return acc;
@@ -93,7 +93,7 @@ const isLotteryResultIndexedOnSubgraph = async (journeyId, lotteryId) => {
     );
   }
 
-  const lotteryResults = response?.data?.data?.lotteryResults?.items;
+  const lotteryResults = response?.data?.data?.lotteryResults?.items || [];
   return (lotteryResults?.length || 0) > 0;
 };
 

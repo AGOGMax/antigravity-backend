@@ -272,7 +272,7 @@ const fetchPrunedTokenIds = async (tokenIds) => {
     console.error("Error while fetching pruned winnings from subgraph: ", e);
   }
 
-  const winningsPruned = response.data?.data?.winningPruneds?.items;
+  const winningsPruned = response.data?.data?.winningPruneds?.items || [];
   const prunedTokenIds = winningsPruned?.map((winning) =>
     parseInt(winning.fuelCell.tokenId)
   );
