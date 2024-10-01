@@ -55,42 +55,56 @@ export const updateTimestampsFromContract = async () => {
   );
 };
 
-export const fetchContributions = async () => {
-  const dbContributions = await contributionsModel.find({ era: 3 });
-  const dbTransactionHashes = new Set(
-    dbContributions.map((contribution) => contribution.transactionHash)
-  );
-
-  const contributionsQuery = `
-    query MyQuery {
-        mints(orderDirection: "desc", orderBy: "transactionHash") {
-          items{
-            amount
-            id
-            timestamp
-            transactionHash
-            journeyId
-            user {
-              address
-            }
-          }
+const contributionsQuery = (afterCursor) => `
+  query MyQuery {
+    mints(orderDirection: "desc", orderBy: "transactionHash", after: ${
+      afterCursor ? `"${afterCursor}"` : null
+    }) {
+      items {
+        amount
+        id
+        timestamp
+        transactionHash
+        journeyId
+        user {
+          address
         }
       }
-    `;
-
-  let response = {};
-  try {
-    response = await axios.post(
-      secrets?.ERA_3_SUBGRAPH_URL,
-      {
-        query: contributionsQuery,
-      },
-      {
-        headers: {
-          "Content-Type": "application/json",
-        },
+      pageInfo {
+        hasNextPage
+        endCursor
       }
-    );
+    }
+  }
+`;
+
+const fetchAllContributionsFromSubgraph = async () => {
+  let contributions = [];
+  let hasNextPage = true;
+  let endCursor = null;
+
+  try {
+    while (hasNextPage) {
+      const response = await axios.post(
+        secrets?.ERA_3_SUBGRAPH_URL,
+        {
+          query: contributionsQuery(endCursor),
+        },
+        {
+          headers: {
+            "Content-Type": "application/json",
+          },
+        }
+      );
+
+      const currentContributions = response?.data?.data?.mints?.items || [];
+      const pageInfo = response?.data?.data?.mints?.pageInfo || {};
+
+      contributions = contributions.concat(currentContributions);
+
+      hasNextPage = pageInfo.hasNextPage;
+      endCursor = pageInfo.endCursor;
+    }
   } catch (e) {
     console.error(
       "Cron Service: Error while fetching mints from subgraph: ",
@@ -102,7 +116,16 @@ export const fetchContributions = async () => {
     );
   }
 
-  const contributions = response?.data?.data?.mints?.items || [];
+  return contributions;
+};
+
+export const fetchContributions = async () => {
+  const dbContributions = await contributionsModel.find({ era: 3 });
+  const dbTransactionHashes = new Set(
+    dbContributions.map((contribution) => contribution.transactionHash)
+  );
+
+  const contributions = await fetchAllContributionsFromSubgraph();
 
   const newContributions = contributions.filter(
     (contribution) => !dbTransactionHashes.has(contribution.transactionHash)
