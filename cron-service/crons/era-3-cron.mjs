@@ -57,7 +57,7 @@ export const updateTimestampsFromContract = async () => {
 
 const contributionsQuery = (afterCursor) => `
   query MyQuery {
-    mints(orderDirection: "desc", orderBy: "transactionHash", after: ${
+    mints(orderDirection: "desc", orderBy: "transactionHash", limit: 900, after: ${
       afterCursor ? `"${afterCursor}"` : null
     }) {
       items {
