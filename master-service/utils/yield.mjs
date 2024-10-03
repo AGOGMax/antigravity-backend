@@ -148,4 +148,27 @@ const fetchTotalUserYield = async (walletAddress) => {
   return { totalFuelCells: totalFuelCells, totalYield: totalYield };
 };
 
-export { fetchTotalUserYield };
+const fetchUserFuelCellsMappingWithTotalYield = async (walletAddress) => {
+  const [yieldMapping, userOwnedFuelCells] = await Promise.all([
+    fetchYieldAmountPerFuelCellMapping(),
+    fetchUserOwnedFuelCells(walletAddress),
+  ]);
+
+  const userFuelCellsMapping = userOwnedFuelCells.reduce((acc, fuelCell) => {
+    const { id, journeyId } = fuelCell;
+
+    if (!acc[journeyId]) {
+      acc[journeyId] = {
+        fuelCells: [],
+        totalYield: yieldMapping[journeyId] || 0,
+      };
+    }
+    acc[journeyId].fuelCells.push(id);
+
+    return acc;
+  }, {});
+
+  return userFuelCellsMapping;
+};
+
+export { fetchTotalUserYield, fetchUserFuelCellsMappingWithTotalYield };
