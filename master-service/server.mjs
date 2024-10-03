@@ -437,7 +437,7 @@ app.post("/api/prune", async (req, res) => {
 app.post("/api/user-yield", async (req, res) => {
   try {
     const { walletAddress } = req.body;
-    const response = await fetchTotalUserYield(walletAddress?.toLowerCase());
+    const response = await fetchTotalUserYield(walletAddress);
     res.json(response);
   } catch (error) {
     console.error(`Master Service: Total User Yield API Error: ${error}`);

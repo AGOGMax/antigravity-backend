@@ -1,17 +1,16 @@
 import axios from "axios";
+import { ethers } from "ethers";
 import { fetchSecretsList } from "../../secrets-manager/secrets-manager.mjs";
-import { contributionsModel } from "../models/models.mjs";
 
 const secrets = await fetchSecretsList();
 
 const fetchYieldAmountPerFuelCellMapping = async () => {
   const yieldQuery = `
         query MyQuery {
-            yieldPayouts {
+            yieldPayouts(limit: 900) {
                 items {
                     journeyId
                     amountPerFuelCell
-                    givenIn
                 }
             }
         }
@@ -38,33 +37,100 @@ const fetchYieldAmountPerFuelCellMapping = async () => {
   }
 
   const yieldPayouts = response?.data?.data?.yieldPayouts?.items || [];
-  const desiredYieldPayouts = yieldPayouts.filter(
-    (yieldPayout) => yieldPayout.journeyId === yieldPayout.givenIn
-  );
 
-  const yieldPayoutMapping = desiredYieldPayouts.reduce((acc, yieldPayout) => {
-    acc[parseInt(yieldPayout.journeyId, 10)] = yieldPayout.amountPerFuelCell;
+  const yieldPayoutMapping = yieldPayouts.reduce((acc, yieldPayout) => {
+    if (!acc[yieldPayout.journeyId]) {
+      acc[yieldPayout.journeyId] = 0;
+    }
+    acc[yieldPayout.journeyId] += parseInt(yieldPayout.amountPerFuelCell, 10);
     return acc;
   }, {});
 
   return yieldPayoutMapping;
 };
 
-const fetchTotalUserYield = async () => {
-  const [yieldMapping, userContributions] = await Promise.all([
+const userOwnedFuelCellsQuery = (walletAddress, afterCursor) => `query MyQuery {
+    users(where: { address: "${walletAddress}" }) {
+      items {
+        ownedFuelCells(after: ${
+          afterCursor ? `"${afterCursor}"` : null
+        }, limit: 900) {
+          items {
+            id
+            journeyId
+          }
+          pageInfo {
+            hasNextPage
+            endCursor
+          }
+        }
+      }
+    }
+  }`;
+
+const fetchUserOwnedFuelCells = async (walletAddress) => {
+  let userOwnedFuelCells = [];
+  let hasNextPage = true;
+  let endCursor = null;
+
+  const checksumWalletAddress = ethers.getAddress(walletAddress);
+
+  try {
+    while (hasNextPage) {
+      const response = await axios.post(
+        secrets?.ERA_3_SUBGRAPH_URL,
+        {
+          query: userOwnedFuelCellsQuery(checksumWalletAddress, endCursor),
+        },
+        {
+          headers: {
+            "Content-Type": "application/json",
+          },
+        }
+      );
+
+      const currentFuelCells =
+        response?.data?.data?.users?.items?.[0]?.ownedFuelCells?.items || [];
+      const pageInfo =
+        response?.data?.data?.users?.items?.[0]?.ownedFuelCells?.pageInfo || {};
+
+      userOwnedFuelCells = userOwnedFuelCells.concat(
+        currentFuelCells.map((fuelCell) => {
+          return { ...fuelCell, journeyId: parseInt(fuelCell.journeyId, 10) };
+        })
+      );
+
+      hasNextPage = pageInfo.hasNextPage;
+      endCursor = pageInfo.endCursor;
+    }
+  } catch (e) {
+    console.error(
+      "Cron Service: Error while fetching mints from subgraph: ",
+      e
+    );
+    captureErrorWithContext(
+      e,
+      "Cron Service: Error while fetching mints from subgraph."
+    );
+  }
+
+  return userOwnedFuelCells;
+};
+
+const fetchTotalUserYield = async (walletAddress) => {
+  const [yieldMapping, userOwnedFuelCells] = await Promise.all([
     fetchYieldAmountPerFuelCellMapping(),
-    contributionsModel.find({ era: 3 }),
+    fetchUserOwnedFuelCells(walletAddress),
   ]);
 
-  const userFuelCellsMapping = userContributions.reduce((acc, contribution) => {
-    const journeyId = contribution.journeyId;
-    const fuelCellsAmount = parseInt(contribution.fuelCellsAmount, 10);
+  const userFuelCellsMapping = userOwnedFuelCells.reduce((acc, fuelCell) => {
+    const journeyId = fuelCell.journeyId;
 
     if (!acc[journeyId]) {
       acc[journeyId] = 0;
     }
 
-    acc[journeyId] += fuelCellsAmount;
+    acc[journeyId] += 1;
     return acc;
   }, {});
 
