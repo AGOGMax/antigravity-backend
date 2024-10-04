@@ -31,6 +31,10 @@ import {
   pruneTokens,
   saveLotteryResult,
 } from "./utils/lottery.mjs";
+import {
+  fetchTotalUserYield,
+  fetchUserFuelCellsMappingWithTotalYield,
+} from "./utils/yield.mjs";
 
 const secrets = await fetchSecretsList();
 
@@ -429,6 +433,38 @@ app.post("/api/prune", async (req, res) => {
   } catch (error) {
     console.error(`Master Service: Prune API Error: ${error}`);
     captureErrorWithContext(error, "Master Service: Prune API Error");
+    res.status(500).send("Internal Server Error");
+  }
+});
+
+app.post("/api/user-yield", async (req, res) => {
+  try {
+    const { walletAddress } = req.body;
+    const response = await fetchTotalUserYield(walletAddress);
+    res.json(response);
+  } catch (error) {
+    console.error(`Master Service: Total User Yield API Error: ${error}`);
+    captureErrorWithContext(
+      error,
+      "Master Service: Total User Yield API Error"
+    );
+    res.status(500).send("Internal Server Error");
+  }
+});
+
+app.post("/api/user-fuel-cells-mapping", async (req, res) => {
+  try {
+    const { walletAddress } = req.body;
+    const response = await fetchUserFuelCellsMappingWithTotalYield(
+      walletAddress
+    );
+    res.json(response);
+  } catch (error) {
+    console.error(`Master Service: Total User Yield API Error: ${error}`);
+    captureErrorWithContext(
+      error,
+      "Master Service: Total User Yield API Error"
+    );
     res.status(500).send("Internal Server Error");
   }
 });
