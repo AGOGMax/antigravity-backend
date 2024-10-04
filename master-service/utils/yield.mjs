@@ -108,10 +108,6 @@ const fetchUserOwnedFuelCells = async (walletAddress) => {
       "Cron Service: Error while fetching mints from subgraph: ",
       e
     );
-    captureErrorWithContext(
-      e,
-      "Cron Service: Error while fetching mints from subgraph."
-    );
   }
 
   return userOwnedFuelCells;
@@ -160,7 +156,7 @@ const fetchUserFuelCellsMappingWithTotalYield = async (walletAddress) => {
     if (!acc[journeyId]) {
       acc[journeyId] = {
         fuelCells: [],
-        totalYield: yieldMapping[journeyId] || 0,
+        totalYieldPerFuelCell: yieldMapping[journeyId] || 0,
       };
     }
     acc[journeyId].fuelCells.push(id);
