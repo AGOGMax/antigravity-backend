@@ -454,9 +454,11 @@ app.post("/api/user-yield", async (req, res) => {
 
 app.post("/api/user-fuel-cells-mapping", async (req, res) => {
   try {
-    const { walletAddress } = req.body;
+    const { walletAddress, cursor, batchSize } = req.body;
     const response = await fetchUserFuelCellsMappingWithTotalYield(
-      walletAddress
+      walletAddress,
+      cursor,
+      batchSize || 500
     );
     res.json(response);
   } catch (error) {

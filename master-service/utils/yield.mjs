@@ -49,12 +49,16 @@ const fetchYieldAmountPerFuelCellMapping = async () => {
   return yieldPayoutMapping;
 };
 
-const userOwnedFuelCellsQuery = (walletAddress, afterCursor) => `query MyQuery {
+const userOwnedFuelCellsQuery = (
+  walletAddress,
+  afterCursor,
+  batchSize = 500
+) => `query MyQuery {
     users(where: { address: "${walletAddress}" }) {
       items {
         ownedFuelCells(after: ${
           afterCursor ? `"${afterCursor}"` : null
-        }, limit: 900) {
+        }, limit: ${batchSize}) {
           items {
             journeyId
             tokenId
@@ -68,6 +72,54 @@ const userOwnedFuelCellsQuery = (walletAddress, afterCursor) => `query MyQuery {
     }
   }`;
 
+const fetchUserOwnedFuelCellsPaginated = async (
+  walletAddress,
+  cursor,
+  batchSize
+) => {
+  let userOwnedFuelCells = [];
+  let pageInfo = {};
+
+  const checksumWalletAddress = ethers.getAddress(walletAddress);
+
+  try {
+    const response = await axios.post(
+      secrets?.ERA_3_SUBGRAPH_URL,
+      {
+        query: userOwnedFuelCellsQuery(
+          checksumWalletAddress,
+          cursor,
+          batchSize
+        ),
+      },
+      {
+        headers: {
+          "Content-Type": "application/json",
+        },
+      }
+    );
+
+    const currentFuelCells =
+      response?.data?.data?.users?.items?.[0]?.ownedFuelCells?.items || [];
+    pageInfo =
+      response?.data?.data?.users?.items?.[0]?.ownedFuelCells?.pageInfo || {};
+
+    userOwnedFuelCells = currentFuelCells.map((fuelCell) => {
+      return {
+        journeyId: parseInt(fuelCell.journeyId, 10),
+        tokenId: parseInt(fuelCell.tokenId, 10),
+      };
+    });
+  } catch (e) {
+    console.error(
+      "Cron Service: Error while fetching mints from subgraph: ",
+      e
+    );
+  }
+
+  return { userOwnedFuelCells, pageInfo };
+};
+
 const fetchUserOwnedFuelCells = async (walletAddress) => {
   let userOwnedFuelCells = [];
   let hasNextPage = true;
@@ -80,7 +132,7 @@ const fetchUserOwnedFuelCells = async (walletAddress) => {
       const response = await axios.post(
         secrets?.ERA_3_SUBGRAPH_URL,
         {
-          query: userOwnedFuelCellsQuery(checksumWalletAddress, endCursor),
+          query: userOwnedFuelCellsQuery(checksumWalletAddress, endCursor, 900),
         },
         {
           headers: {
@@ -147,11 +199,17 @@ const fetchTotalUserYield = async (walletAddress) => {
   return { totalFuelCells: totalFuelCells, totalYield: totalYield };
 };
 
-const fetchUserFuelCellsMappingWithTotalYield = async (walletAddress) => {
-  const [yieldMapping, userOwnedFuelCells] = await Promise.all([
+const fetchUserFuelCellsMappingWithTotalYield = async (
+  walletAddress,
+  cursor,
+  batchSize
+) => {
+  const [yieldMapping, fuelCellsResponse] = await Promise.all([
     fetchYieldAmountPerFuelCellMapping(),
-    fetchUserOwnedFuelCells(walletAddress),
+    fetchUserOwnedFuelCellsPaginated(walletAddress, cursor, batchSize),
   ]);
+
+  const { userOwnedFuelCells, pageInfo } = fuelCellsResponse;
 
   const userFuelCellsMapping = userOwnedFuelCells.reduce((acc, fuelCell) => {
     const { tokenId, journeyId } = fuelCell;
@@ -167,7 +225,7 @@ const fetchUserFuelCellsMappingWithTotalYield = async (walletAddress) => {
     return acc;
   }, {});
 
-  return userFuelCellsMapping;
+  return { ...userFuelCellsMapping, pageInfo };
 };
 
 export { fetchTotalUserYield, fetchUserFuelCellsMappingWithTotalYield };
