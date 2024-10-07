@@ -56,8 +56,8 @@ const userOwnedFuelCellsQuery = (walletAddress, afterCursor) => `query MyQuery {
           afterCursor ? `"${afterCursor}"` : null
         }, limit: 900) {
           items {
-            id
             journeyId
+            tokenId
           }
           pageInfo {
             hasNextPage
@@ -96,7 +96,10 @@ const fetchUserOwnedFuelCells = async (walletAddress) => {
 
       userOwnedFuelCells = userOwnedFuelCells.concat(
         currentFuelCells.map((fuelCell) => {
-          return { ...fuelCell, journeyId: parseInt(fuelCell.journeyId, 10) };
+          return {
+            journeyId: parseInt(fuelCell.journeyId, 10),
+            tokenId: parseInt(fuelCell.tokenId, 10),
+          };
         })
       );
 
@@ -151,7 +154,7 @@ const fetchUserFuelCellsMappingWithTotalYield = async (walletAddress) => {
   ]);
 
   const userFuelCellsMapping = userOwnedFuelCells.reduce((acc, fuelCell) => {
-    const { id, journeyId } = fuelCell;
+    const { tokenId, journeyId } = fuelCell;
 
     if (!acc[journeyId]) {
       acc[journeyId] = {
@@ -159,7 +162,7 @@ const fetchUserFuelCellsMappingWithTotalYield = async (walletAddress) => {
         totalYieldPerFuelCell: yieldMapping[journeyId] || 0,
       };
     }
-    acc[journeyId].fuelCells.push(id);
+    acc[journeyId].fuelCells.push(tokenId);
 
     return acc;
   }, {});
