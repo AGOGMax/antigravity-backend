@@ -35,15 +35,15 @@ const captureErrorWithContext = (error, contextMessage) => {
   });
 };
 
-cron.schedule("*/2 * * * *", () => {
-  console.log("Cron Ran for Era-1");
-  try {
-    fetchEra1Contributions("base");
-    fetchEra1Contributions("pulsechain");
-  } catch (e) {
-    captureErrorWithContext(e, "Error while running era 1 cron.");
-  }
-});
+// cron.schedule("*/2 * * * *", () => {
+//   console.log("Cron Ran for Era-1");
+//   try {
+//     fetchEra1Contributions("base");
+//     fetchEra1Contributions("pulsechain");
+//   } catch (e) {
+//     captureErrorWithContext(e, "Error while running era 1 cron.");
+//   }
+// });
 
 cron.schedule("*/2 * * * *", () => {
   console.log("Cron Ran for Era-2");
@@ -55,14 +55,14 @@ cron.schedule("*/2 * * * *", () => {
   }
 });
 
-cron.schedule("*/15 * * * *", () => {
-  console.log("Cron Ran for Era 1 Keeper");
-  try {
-    invokeEra1Keeper();
-  } catch (e) {
-    captureErrorWithContext(e, "Error while running era 1 keeper.");
-  }
-});
+// cron.schedule("*/15 * * * *", () => {
+//   console.log("Cron Ran for Era 1 Keeper");
+//   try {
+//     invokeEra1Keeper();
+//   } catch (e) {
+//     captureErrorWithContext(e, "Error while running era 1 keeper.");
+//   }
+// });
 
 // cron.schedule("0 */6 * * *", () => {
 //   console.log("Cron Ran for Era 3 Timestamps from Contract");
