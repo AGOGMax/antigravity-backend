@@ -79,6 +79,7 @@ export const fetchEra3TimestampsAndMultipliers = async (walletAddress) => {
     nextJourneyTimestamp: timestamps?.nextJourneyStartTime,
     mintEndTimestamp:
       timestamps?.currentPhaseId === "1" ? timestamps?.nextPhaseStartTime : "",
+    nextPhaseStartTimestamp: timestamps?.nextPhaseStartTime,
     multiplier,
     rewardMultiplier,
   };
