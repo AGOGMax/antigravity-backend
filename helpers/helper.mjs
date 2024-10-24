@@ -188,9 +188,9 @@ const generateEra2Points = async (contributions, blockchain) => {
 };
 
 const getEra3Multiplier = (currentJourney) => {
-  if (currentJourney === 1) return 33;
-  else if (currentJourney === 2) return 22;
-  else if (currentJourney === 3) return 11;
+  if (currentJourney === "1") return 33;
+  else if (currentJourney === "2") return 22;
+  else if (currentJourney === "3") return 11;
   else return 1;
 };
 
