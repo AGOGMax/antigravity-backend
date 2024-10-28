@@ -1,4 +1,5 @@
 import axios from "axios";
+import { ethers } from "ethers";
 import { fetchSecretsList } from "../../secrets-manager/secrets-manager.mjs";
 import { pointsModel, contributionsModel } from "../models/models.mjs";
 import {
@@ -19,19 +20,27 @@ export const verifyMining = async (walletAddress, blockchain) => {
     dbContributions.map((contribution) => contribution.transactionHash)
   );
 
+  const checksumWalletAddress = ethers.getAddress(walletAddress);
+
   const contributionsQuery = `
-  query MyQuery {
-    mines(orderBy: timestamp, orderDirection: desc, where: {user_: {address: "${walletAddress}"}}) {
-      amount
-      token
-      tokenInvested
-      timestamp
-      transactionHash
-      user {
-        address
+    query MyQuery {
+      users(where: { address: "${checksumWalletAddress}" }) {
+        items {
+          mines(limit: 900) {
+            items {
+              amount
+              token
+              tokenInvested
+              timestamp
+              transactionHash
+              user {
+                address
+              }
+            }
+          }
+        }
       }
     }
-  }
 `;
 
   const url =
@@ -56,7 +65,8 @@ export const verifyMining = async (walletAddress, blockchain) => {
     console.error("Error while fetching minings for verify mining: ", e);
   }
 
-  const contributions = response?.data?.data?.mines;
+  const contributions =
+    response?.data?.data?.users?.items?.[0]?.mines?.items || [];
   const newContributions = contributions.filter(
     (contribution) => !dbTransactionHashes.has(contribution.transactionHash)
   );

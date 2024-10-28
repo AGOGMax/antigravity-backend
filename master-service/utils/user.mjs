@@ -1,4 +1,5 @@
 import axios from "axios";
+import { ethers } from "ethers";
 import { getBadge } from "../../helpers/helper.mjs";
 import { usersModel, pointsModel } from "../models/models.mjs";
 import { fetchSecretsList } from "../../secrets-manager/secrets-manager.mjs";
@@ -56,14 +57,17 @@ const fetchEraPointsAndRankByWalletAddress = async (userWalletAddress) => {
 };
 
 const fetchUserFromSubgraph = async (walletAddress, blockchain, era) => {
+  const checksumWalletAddress = ethers.getAddress(walletAddress);
   const userQuery = `
   query MyQuery {
-    users(where: {address: "${walletAddress}"}) {
-      wishwellId {
-        tokenId
-      }
-      antigravity {
-        tokenId
+    users(where: {address: "${checksumWalletAddress}"}) {
+      items{
+        wishwell {
+          tokenId
+        }
+        antigravity {
+          tokenId
+        }
       }
     }
   }`;
@@ -90,9 +94,9 @@ const fetchUserFromSubgraph = async (walletAddress, blockchain, era) => {
     console.error("Error while fetching user from subgraph: ", e);
   }
 
-  const userData = response?.data?.data?.users?.[0];
+  const userData = response?.data?.data?.users?.items?.[0];
   return era === 1
-    ? userData?.wishwellId?.tokenId
+    ? userData?.wishwell?.tokenId
     : userData?.antigravity?.tokenId;
 };
 

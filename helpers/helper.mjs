@@ -70,7 +70,7 @@ const modifyEra2Contributions = (contributions, blockchain) => {
       timestamp: contribution.timestamp,
       contributionTokenAddress: contribution.token,
       totalContributionTokenAmount: contribution.tokenInvested,
-      darkXTokenAmount: contribution.amount / Math.pow(10, 18),
+      darkXTokenAmount: parseInt(contribution.amount) / Math.pow(10, 18),
       blockchain,
     };
   });

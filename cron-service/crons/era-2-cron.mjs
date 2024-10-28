@@ -17,15 +17,17 @@ export const fetchContributions = async (blockchain) => {
 
   const contributionsQuery = `
     query MyQuery {
-      mines(orderBy: timestamp, orderDirection: desc) {
-        amount
-        token
-        tokenInvested
-        user {
-          address
+      mines(orderBy: "timestamp", orderDirection: "desc") {
+        items {
+          amount
+          token
+          tokenInvested
+          user {
+            address
+          }
+          timestamp
+          transactionHash
         }
-        timestamp
-        transactionHash
       }
     }
   `;
@@ -53,7 +55,7 @@ export const fetchContributions = async (blockchain) => {
     captureErrorWithContext(e, "Error while fetching era-e contributions.");
   }
 
-  const contributions = response?.data?.data?.mines;
+  const contributions = response?.data?.data?.mines?.items;
 
   const newContributions = contributions.filter(
     (contribution) => !dbTransactionHashes.has(contribution.transactionHash)
