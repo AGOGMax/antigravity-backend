@@ -388,9 +388,10 @@ export const saveMissedLotteryResults = async () => {
     );
   }
 
-  const missedLotteryResults = response.data?.data?.lotteryResults?.items?.map(
-    (lotteryResult) => lotteryResult.uri
-  );
+  const missedLotteryResults =
+    response.data?.data?.lotteryResults?.items?.map(
+      (lotteryResult) => lotteryResult.uri
+    ) || [];
 
   for (const url of missedLotteryResults) {
     let lotteryData = {};
