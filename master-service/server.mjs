@@ -473,7 +473,6 @@ app.post("/api/user-fuel-cells-mapping", async (req, res) => {
 
 app.get("/api/fuel-cell-metadata/:fuelCellId", async (req, res) => {
   try {
-    const { fuelCellId } = req.params;
     const response = {
       name: "Fuel Cell: Journey 1",
       description:
@@ -481,7 +480,7 @@ app.get("/api/fuel-cell-metadata/:fuelCellId", async (req, res) => {
       attributes: [
         {
           trait_type: "Journey ID",
-          value: parseInt(fuelCellId, 10),
+          value: 1,
         },
       ],
       external_url: "https://agproject.xyz",
