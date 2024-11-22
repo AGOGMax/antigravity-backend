@@ -2,7 +2,6 @@ import express from "express";
 import { fetchNFT } from "./utils/nft.mjs";
 import { fetchSecretsList } from "../secrets-manager/secrets-manager.mjs";
 import * as Sentry from "@sentry/node";
-import { nodeProfilingIntegration } from "@sentry/profiling-node";
 
 const secrets = await fetchSecretsList();
 
@@ -11,9 +10,7 @@ app.use(express.json());
 
 Sentry.init({
   dsn: secrets?.SENTRY_DSN_URL,
-  integrations: [nodeProfilingIntegration()],
   tracesSampleRate: 1.0,
-  profilesSampleRate: 1.0,
 });
 
 const captureErrorWithContext = (error, contextMessage) => {
