@@ -106,7 +106,7 @@ cron.schedule("*/2 * * * *", () => {
 //   }
 // });
 
-cron.schedule("0 * * * *", () => {
+cron.schedule("*/2 * * * *", () => {
   console.log("Cron Ran for pruning token IDs.");
   try {
     pruneTokenIds();
@@ -115,7 +115,7 @@ cron.schedule("0 * * * *", () => {
   }
 });
 
-cron.schedule("0 * * * *", () => {
+cron.schedule("*/2 * * * *", () => {
   console.log("Cron Ran for updating fuel cell transfers.");
   try {
     updateRecentTransfersAddress();
@@ -124,7 +124,7 @@ cron.schedule("0 * * * *", () => {
   }
 });
 
-cron.schedule("0 * * * *", () => {
+cron.schedule("*/2 * * * *", () => {
   console.log("Cron Ran for saving missed lottery results.");
   try {
     saveMissedLotteryResults();
