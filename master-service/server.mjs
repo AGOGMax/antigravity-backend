@@ -471,6 +471,33 @@ app.post("/api/user-fuel-cells-mapping", async (req, res) => {
   }
 });
 
+app.get("/api/fuel-cell-metadata/:fuelCellId", async (req, res) => {
+  try {
+    const { fuelCellId } = req.params;
+    const response = {
+      name: "Fuel Cell: Journey 1",
+      description:
+        "Fuel Cells are digital manifestation of Battery that accumulates Dark over time for the journey.",
+      attributes: [
+        {
+          trait_type: "Journey ID",
+          value: parseInt(fuelCellId, 10),
+        },
+      ],
+      external_url: "https://agproject.xyz",
+      image: "https://antigravity.b-cdn.net/fuel-cell-nft-green%20(1).png",
+    };
+    res.json(response);
+  } catch (error) {
+    console.error(`Master Service: Fuel Cell Metadata API Error: ${error}`);
+    captureErrorWithContext(
+      error,
+      "Master Service: Fuel Cell Metadata API Error"
+    );
+    res.status(500).send("Internal Server Error");
+  }
+});
+
 Sentry.setupExpressErrorHandler(app);
 
 await mongoose.connect(secrets?.MONGODB_CONNECTION_STRING);
