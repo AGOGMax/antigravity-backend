@@ -9,6 +9,7 @@ import { unlink } from "fs";
 import path from "path";
 import generateEra2Html from "./generateEra2Html.mjs";
 import { captureErrorWithContext } from "../server.mjs";
+import { v4 as uuidv4 } from "uuid";
 
 const s3 = new AWS.S3();
 const secrets = await fetchSecretsList();
@@ -57,7 +58,7 @@ const generateNFTBuffer = async (filename) => {
     }
     console.log(`File ${htmlFilePath} has been deleted`);
   });
-  page.close();
+  await page.close();
   browser.close();
   return imageBuffer;
 };
@@ -97,11 +98,13 @@ export const fetchNFT = async (nftPayload, filename) => {
   if (!isEmpty(s3NftUrl)) {
     return s3NftUrl;
   } else {
+    const uniqueId = uuidv4();
+    const uniqueFileName = `${filename}-${uniqueId}`;
     try {
       if (nftPayload.era === 1) {
-        await generateEra1Html(nftPayload, filename);
+        await generateEra1Html(nftPayload, uniqueFileName);
       } else if (nftPayload.era === 2) {
-        await generateEra2Html(nftPayload, filename);
+        await generateEra2Html(nftPayload, uniqueFileName);
       }
     } catch (error) {
       console.error(
@@ -114,7 +117,7 @@ export const fetchNFT = async (nftPayload, filename) => {
     }
     let nftBuffer = "";
     try {
-      nftBuffer = await generateNFTBuffer(filename);
+      nftBuffer = await generateNFTBuffer(uniqueFileName);
     } catch (error) {
       console.error(
         `NFT Service: Error while generating NFT from HTML: ${error}`
