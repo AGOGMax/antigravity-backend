@@ -12,25 +12,6 @@ const fetchEra1Contributors = async () => {
 };
 
 const fetchEra2Points = async () => {
-  const totalPoints = await pointsModel
-    .aggregate([
-      { $match: { era: 2 } },
-      {
-        $group: {
-          _id: "$walletAddress",
-          totalPoints: { $sum: "$points" },
-        },
-      },
-      {
-        $project: {
-          _id: 0,
-          address: "$_id",
-          totalPoints: 1,
-        },
-      },
-    ])
-    .exec();
-
   const result = await pointsModel
     .aggregate([
       {
