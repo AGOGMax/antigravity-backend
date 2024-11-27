@@ -250,7 +250,7 @@ const generateEra2Html = (htmlPayload, filename) => {
           </svg>
         </div>
 
-        <h1 class="title">ANTIGRAVITY</h1>
+        <h1 class="title">COLLECTIVE</h1>
         <div class="gradient-bar"></div>
         <div class="section">
           <p class="section-title">Your Rank</p>
