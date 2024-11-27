@@ -69,7 +69,9 @@ export const fetchEra3TimestampsAndMultipliers = async (walletAddress) => {
 
   const timestamps = response?.data?.data?.journeyPhaseManagers?.items?.[0];
 
-  const multiplier = getEra3Multiplier(timestamps?.currentJourneyId);
+  const multiplier = getEra3Multiplier(
+    parseInt(timestamps?.currentJourneyId, 10)
+  );
   const rewardMultiplier = await getRewardMultiplier(walletAddress);
 
   return {
