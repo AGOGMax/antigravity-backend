@@ -484,7 +484,7 @@ app.get("/api/fuel-cell-metadata/:fuelCellId", async (req, res) => {
         },
       ],
       external_url: "https://agproject.xyz",
-      image: "https://antigravity.b-cdn.net/fuel-cell-nft-green%20(1).png",
+      image: "https://antigravity.b-cdn.net/FuelCellJourney1.png",
     };
     res.json(response);
   } catch (error) {
