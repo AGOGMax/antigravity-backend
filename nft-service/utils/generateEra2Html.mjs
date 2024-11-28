@@ -130,6 +130,7 @@ const generateEra2Html = (htmlPayload, filename) => {
     text-transform: uppercase;
     font-size: 36px;
     line-height: 36px;
+    text-align: center;
   }
   .gradient-bar {
     height: 2.796px;
