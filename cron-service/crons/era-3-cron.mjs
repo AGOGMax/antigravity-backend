@@ -16,6 +16,7 @@ import {
 } from "../../helpers/helper.mjs";
 import axios from "axios";
 import schedule from "node-schedule";
+import isEmpty from "lodash/isEmpty.js";
 import { chunkArray } from "../../helpers/helper.mjs";
 import { captureErrorWithContext } from "../start-crons.mjs";
 
@@ -352,17 +353,27 @@ export const saveMissedLotteryResults = async () => {
   const existingResults = await lotteryResultsModel.find({});
   const existingResultsUri = existingResults.map((result) => result.uri);
 
-  const missedLotteryResultsQuery = `
-    query MyQuery {
-      lotteryResults(where: {uri_not_in: [${existingResultsUri
-        .map((uri) => `"${uri}"`)
-        .join(", ")}]}) {
-          items{
-            uri
+  let missedLotteryResultsQuery = `query MyQuery {
+                                    lotteryResults {
+                                        items{
+                                          uri
+                                        }
+                                    }
+                                  }`;
+
+  if (!isEmpty(existingResultsUri)) {
+    missedLotteryResultsQuery = `
+        query MyQuery {
+          lotteryResults(where: {uri_not_in: [${existingResultsUri
+            .map((uri) => `"${uri}"`)
+            .join(", ")}]}) {
+              items{
+                uri
+              }
           }
-      }
-    }
-  `;
+        }
+      `;
+  }
 
   let response = {};
   try {
