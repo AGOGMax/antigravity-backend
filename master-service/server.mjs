@@ -9,7 +9,11 @@ import {
   enrollUserToNewsletter,
   fetchNewsletterEnrollments,
 } from "./utils/newsletter.mjs";
-import { checkOrCreateUser, fetchTotalPoints } from "./utils/user.mjs";
+import {
+  assignPointsByAdmin,
+  checkOrCreateUser,
+  fetchTotalPoints,
+} from "./utils/user.mjs";
 import { verifyMining } from "./utils/mining.mjs";
 import { fetchSecretsList } from "../secrets-manager/secrets-manager.mjs";
 import { generateNFTPayload } from "./utils/nft.mjs";
@@ -493,6 +497,41 @@ app.get("/api/fuel-cell-metadata/:fuelCellId", async (req, res) => {
       error,
       "Master Service: Fuel Cell Metadata API Error"
     );
+    res.status(500).send("Internal Server Error");
+  }
+});
+
+app.post("/api/assign-points", async (req, res) => {
+  try {
+    const { walletAddress, points, secret } = req.body;
+    const adminSecret = secrets?.POINTS_ADMIN_SECRET;
+
+    if (adminSecret !== secret) {
+      return res.status(403).json({
+        success: false,
+        error: "Unauthorized: Invalid Admin Secret.",
+      });
+    }
+
+    if (!walletAddress || points == null) {
+      return res.status(400).json({
+        success: false,
+        error: "Wallet Address and Points are required.",
+      });
+    }
+
+    if (typeof points !== "number" || Number.isNaN(points)) {
+      return res.status(400).json({
+        success: false,
+        error: "Points must be a valid number.",
+      });
+    }
+
+    await assignPointsByAdmin(walletAddress, points);
+    res.json({ success: true });
+  } catch (error) {
+    console.error(`Master Service: Assign Points API Error: ${error}`);
+    captureErrorWithContext(error, "Master Service: Assign Points API Error");
     res.status(500).send("Internal Server Error");
   }
 });
