@@ -31,6 +31,9 @@ const evilTokensBlockSchema = new Schema(
 );
 const evilTokensBlockModel = model("evilTokensBlock", evilTokensBlockSchema);
 
+const fuelCellMetadataSchema = new Schema({}, { strict: false });
+const fuelCellMetadataModel = model("fuelCellMetadata", fuelCellMetadataSchema);
+
 export {
   contributionsModel,
   pointsModel,
@@ -39,4 +42,5 @@ export {
   lotteryResultsModel,
   lotteryEntriesModel,
   evilTokensBlockModel,
+  fuelCellMetadataModel,
 };
