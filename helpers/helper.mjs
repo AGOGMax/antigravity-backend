@@ -269,8 +269,8 @@ const fetchJourneyIdForFuelCell = async (tokenId) => {
 
   const fuelCell = response.data?.data?.fuelCells?.items?.[0] || [];
 
-  if (fuelCell?.tokenId) {
-    return parseInt(fuelCell.tokenId);
+  if (fuelCell?.journeyId) {
+    return parseInt(fuelCell.journeyId);
   }
   return "default";
 };
