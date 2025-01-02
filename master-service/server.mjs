@@ -17,7 +17,11 @@ import {
 import { verifyMining } from "./utils/mining.mjs";
 import { fetchSecretsList } from "../secrets-manager/secrets-manager.mjs";
 import { generateNFTPayload } from "./utils/nft.mjs";
-import { predictEra2Points, predictMultiplier } from "../helpers/helper.mjs";
+import {
+  fetchJourneyIdForFuelCell,
+  predictEra2Points,
+  predictMultiplier,
+} from "../helpers/helper.mjs";
 import axios from "axios";
 import cors from "cors";
 import {
@@ -39,6 +43,7 @@ import {
   fetchTotalUserYield,
   fetchUserFuelCellsMappingWithTotalYield,
 } from "./utils/yield.mjs";
+import { fuelCellMetadataModel } from "./models/models.mjs";
 
 const secrets = await fetchSecretsList();
 
@@ -477,20 +482,17 @@ app.post("/api/user-fuel-cells-mapping", async (req, res) => {
 
 app.get("/api/fuel-cell-metadata/:fuelCellId", async (req, res) => {
   try {
-    const response = {
-      name: "Fuel Cell: Journey 1",
-      description:
-        "Fuel Cells are digital manifestation of Battery that accumulates Dark over time for the journey.",
-      attributes: [
-        {
-          trait_type: "Journey ID",
-          value: 1,
-        },
-      ],
-      external_url: "https://agproject.xyz",
-      image: "https://antigravity.b-cdn.net/FuelCellJourney1.png",
-    };
-    res.json(response);
+    const { fuelCellId } = req.params;
+    const journeyId = await fetchJourneyIdForFuelCell(parseInt(fuelCellId, 10));
+    let metadataDocument = await fuelCellMetadataModel.findOne({
+      journeyId: journeyId,
+    });
+    if (!metadataDocument) {
+      metadataDocument = await fuelCellMetadataModel.findOne({
+        journeyId: "default",
+      });
+    }
+    return res.json(metadataDocument?.metadata || {});
   } catch (error) {
     console.error(`Master Service: Fuel Cell Metadata API Error: ${error}`);
     captureErrorWithContext(
@@ -532,6 +534,74 @@ app.post("/api/assign-points", async (req, res) => {
   } catch (error) {
     console.error(`Master Service: Assign Points API Error: ${error}`);
     captureErrorWithContext(error, "Master Service: Assign Points API Error");
+    res.status(500).send("Internal Server Error");
+  }
+});
+
+app.post("/api/save-fuel-cell-metadata", async (req, res) => {
+  try {
+    const { journeyId, metadata } = req.body;
+
+    if (!journeyId || typeof journeyId !== "number") {
+      return res.status(400).json({
+        success: false,
+        error: "journeyId is required and must be an integer.",
+      });
+    }
+
+    if (!metadata || typeof metadata !== "object") {
+      return res.status(400).json({
+        success: false,
+        error: "metadata is required and must be an object.",
+      });
+    }
+
+    const updatedDocument = await fuelCellMetadataModel.findOneAndUpdate(
+      { journeyId },
+      { journeyId, metadata },
+      { upsert: true, new: true }
+    );
+
+    res.status(200).json({
+      success: true,
+      message: "Metadata saved successfully.",
+      metadata: updatedDocument.metadata,
+    });
+  } catch (error) {
+    console.error(`Master Service: Save Metadata API Error: ${error}`);
+    captureErrorWithContext(error, "Master Service: Save Metadata API Error");
+    res.status(500).send("Internal Server Error");
+  }
+});
+
+app.post("/api/save-default-fuel-cell-metadata", async (req, res) => {
+  try {
+    const { metadata } = req.body;
+
+    if (!metadata || typeof metadata !== "object") {
+      return res.status(400).json({
+        success: false,
+        error: "metadata is required and must be an object.",
+      });
+    }
+
+    const updatedDocument = await fuelCellMetadataModel.findOneAndUpdate(
+      { journeyId: "default" },
+      { journeyId: "default", metadata },
+      { upsert: true, new: true }
+    );
+
+    res.status(200).json({
+      success: true,
+      message: "Metadata saved successfully.",
+      metadata: updatedDocument.metadata,
+    });
+  } catch (error) {
+    console.error(`Master Service: Save Default Metadata API Error: ${error}`);
+    captureErrorWithContext(
+      error,
+      "Master Service: Save Default Metadata API Error"
+    );
     res.status(500).send("Internal Server Error");
   }
 });

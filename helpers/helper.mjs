@@ -235,6 +235,46 @@ const chunkArray = (array, size) => {
   return result;
 };
 
+const fetchJourneyIdForFuelCell = async (tokenId) => {
+  const fuelCellQuery = `
+    query MyQuery {
+      fuelCells(where: { tokenId: "${tokenId}" }) {
+        items {
+          tokenId
+          journeyId
+        }
+      }
+    }
+  `;
+
+  let response = {};
+  try {
+    response = await axios.post(
+      secrets?.ERA_3_SUBGRAPH_URL,
+      {
+        query: fuelCellQuery,
+      },
+      {
+        headers: {
+          "Content-Type": "application/json",
+        },
+      }
+    );
+  } catch (e) {
+    console.error(
+      "Error while fetching journey id for fuel cell from subgraph: ",
+      e
+    );
+  }
+
+  const fuelCell = response.data?.data?.fuelCells?.items?.[0] || [];
+
+  if (fuelCell?.tokenId) {
+    return parseInt(fuelCell.tokenId);
+  }
+  return "default";
+};
+
 const fetchPrunedTokenIds = async (tokenIds) => {
   const fuelCellContractAddress = secrets?.FUEL_CELL_CONTRACT_ADDRESS;
   const fuelCellIds = tokenIds.map(
@@ -293,4 +333,5 @@ export {
   fetchEra1ContributorsFromS3,
   chunkArray,
   fetchPrunedTokenIds,
+  fetchJourneyIdForFuelCell,
 };
