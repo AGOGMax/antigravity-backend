@@ -327,7 +327,7 @@ export const updateRecentTransfersAddress = async () => {
   const transfers = response.data?.data?.transfers?.items || [];
   const bulkOperations = transfers?.map((transfer) => {
     const { tokenId } = transfer.token;
-    const newWalletAddress = transfer.to.address;
+    const newWalletAddress = transfer.to.address?.toLowerCase();
 
     return {
       updateMany: {
