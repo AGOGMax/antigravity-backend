@@ -200,7 +200,7 @@ const fetchTotalPoints = async (walletAddress) => {
 
 const assignPointsByAdmin = async (walletAddress, points) => {
   const pointsObject = {
-    walletAddress: walletAddress?.toLowerCase(),
+    walletAddress: walletAddress?.trim()?.toLowerCase(),
     points: points,
     isGrantedByAdmin: true,
     era: 3,
