@@ -33,6 +33,7 @@ import { nodeProfilingIntegration } from "@sentry/profiling-node";
 import { fetchEra3TimestampsAndMultipliers } from "./utils/timestamps.mjs";
 import { verifyMinting } from "./utils/minting.mjs";
 import {
+  fetchEvilBonusForJourney,
   fetchLotteryResult,
   fetchLotteryResults,
   fetchTokensUsingUniqueCombinations,
@@ -602,6 +603,21 @@ app.post("/api/save-default-fuel-cell-metadata", async (req, res) => {
       error,
       "Master Service: Save Default Metadata API Error"
     );
+    res.status(500).send("Internal Server Error");
+  }
+});
+
+app.get("/api/evil-bonus/:journeyId", async (req, res) => {
+  try {
+    const { journeyId } = req.params;
+    const evilBonusMapping = await fetchEvilBonusForJourney(
+      parseInt(journeyId || 0)
+    );
+
+    res.json(evilBonusMapping);
+  } catch (error) {
+    console.error(`Master Service: Evil Bonus Fetch Error: ${error}`);
+    captureErrorWithContext(error, "Master Service: Evil Bonus Fetch Error");
     res.status(500).send("Internal Server Error");
   }
 });

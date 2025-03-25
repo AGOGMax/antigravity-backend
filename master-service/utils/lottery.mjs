@@ -257,6 +257,112 @@ const fetchLotteryResults = async (lotteryId, journeyId) => {
   return lotteryEntriesModel.find({ isPruned: false }).select(desiredFields);
 };
 
+const fetchWinningAmountForPrunedTokenIds = async (tokenIds) => {
+  const fuelCellContractAddress = secrets?.FUEL_CELL_CONTRACT_ADDRESS;
+  const fuelCellIds = tokenIds.map(
+    (tokenId) => `"${fuelCellContractAddress.concat(tokenId.toString())}"`
+  );
+
+  const prunedWinningsQuery = `
+      query MyQuery {
+        winningPruneds(where: { fuelCellId_in: [${fuelCellIds.join(
+          ","
+        )}] }, limit: 900) {
+          items {
+            winningAmount
+          }
+        }
+      }
+    `;
+
+  let response = {};
+  try {
+    response = await axios.post(
+      secrets?.ERA_3_SUBGRAPH_URL,
+      {
+        query: prunedWinningsQuery,
+      },
+      {
+        headers: {
+          "Content-Type": "application/json",
+        },
+      }
+    );
+  } catch (e) {
+    console.error("Error while fetching pruned winnings from subgraph: ", e);
+  }
+
+  const winningsPruned = response.data?.data?.winningPruneds?.items || [];
+
+  return winningsPruned;
+};
+
+const fetchEvilBonusForLottery = async (journeyId, lotteryId) => {
+  const tokens = await lotteryEntriesModel.find({
+    walletAddress: secrets?.EVIL_CONTRACT_ADDRESS?.toLowerCase(),
+    journeyId: journeyId,
+    lotteryId: lotteryId,
+    isPruned: true,
+  });
+
+  const tokenIds = tokens.map((token) => token.tokenId);
+  const tokenIdsBatches = chunkArray(tokenIds, 900);
+
+  const prunedWinningsAmount = await Promise.all(
+    tokenIdsBatches.map((batch) => fetchWinningAmountForPrunedTokenIds(batch))
+  );
+
+  const allPrunedWinningsAmount = prunedWinningsAmount?.flat();
+
+  const totalWinningAmount = allPrunedWinningsAmount.reduce((acc, winning) => {
+    const winningAmountInDecimals = BigInt(winning.winningAmount);
+    const winningAmountInInteger =
+      Number(winningAmountInDecimals) / Math.pow(10, 18);
+    return acc + winningAmountInInteger;
+  }, 0);
+
+  const evilBonus = 0.97 * totalWinningAmount; //Reducing 3% team fees
+
+  return evilBonus;
+};
+
+const fetchEvilBonusForJourney = async (journeyId) => {
+  const initialEvilBonusMapping = {
+    big: 0,
+    bigger: 0,
+    biggest: 0,
+  };
+
+  let lotteryMapping = {
+    big: { journeyId: journeyId - 1, lotteryId: 3 },
+    bigger: { journeyId: journeyId, lotteryId: 1 },
+    biggest: { journeyId: journeyId, lotteryId: 2 },
+  };
+
+  if (journeyId === 1) {
+    lotteryMapping = {
+      bigger: { journeyId: journeyId, lotteryId: 1 },
+      biggest: { journeyId: journeyId, lotteryId: 2 },
+    };
+  }
+
+  const evilBonusMapping = await Promise.all(
+    Object.keys(lotteryMapping).map(async (key) => {
+      const evilBonus = await fetchEvilBonusForLottery(
+        lotteryMapping[key]?.journeyId,
+        lotteryMapping[key]?.lotteryId
+      );
+      return { [key]: evilBonus };
+    })
+  ).then((results) => {
+    return results.reduce((acc, result) => {
+      return { ...acc, ...result };
+    }, {});
+  });
+
+  return { ...initialEvilBonusMapping, ...evilBonusMapping };
+};
+
 const pruneTokens = async (walletAddress) => {
   const tokens = await lotteryEntriesModel.find({
     walletAddress: walletAddress,
@@ -335,4 +441,5 @@ export {
   fetchLotteryResults,
   pruneTokens,
   fetchTokensUsingUniqueCombinations,
+  fetchEvilBonusForJourney,
 };
