@@ -1,5 +1,6 @@
 import express from "express";
 import mongoose from "mongoose";
+import { createClient } from "redis";
 import {
   fetchLeaderboard,
   fetchAllTimeLeaderboard,
@@ -54,6 +55,20 @@ const corsOptions = {
 };
 
 const app = express();
+
+const environment = process.env.ENV || "TEST";
+
+const redisClient = createClient({
+  username: "default",
+  password: secrets?.REDIS_PASSWORD,
+  socket: {
+    host: secrets?.REDIS_HOST,
+    port: 19946,
+  },
+});
+
+redisClient.on("error", (err) => console.log("Redis Client Error ❌", err));
+await redisClient.connect();
 
 Sentry.init({
   dsn: secrets?.SENTRY_DSN_URL,
@@ -610,8 +625,20 @@ app.post("/api/save-default-fuel-cell-metadata", async (req, res) => {
 app.get("/api/evil-bonus/:journeyId", async (req, res) => {
   try {
     const { journeyId } = req.params;
+
+    const redisKey = `${environment}:api:evilbonus:${journeyId}`;
+    const cachedEvilBonusMapping = await redisClient.get(redisKey);
+    if (cachedEvilBonusMapping) {
+      return res.json(JSON.parse(cachedEvilBonusMapping));
+    }
+
     const evilBonusMapping = await fetchEvilBonusForJourney(
       parseInt(journeyId || 0)
+    );
+    await redisClient.set(
+      redisKey,
+      JSON.stringify(evilBonusMapping),
+      { EX: 6 * 60 * 60 } // 6 hours expiration time
     );
 
     res.json(evilBonusMapping);
