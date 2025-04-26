@@ -57,7 +57,7 @@ contract.on("Randomise", async (roundId, numEntrants) => {
   try {
     const result = await lambda
       .invoke({
-        FunctionName: "pmw-rng-testing-keeper",
+        FunctionName: secrets?.PMW_KEEPER_NAME,
         InvocationType: "Event",
         Payload: JSON.stringify({}),
       })
