@@ -28,7 +28,7 @@ process.on("uncaughtException", (err) => {
 });
 
 const lambda = new AWS.Lambda({ region: "us-east-1" });
-const provider = new ethers.WebSocketProvider(secrets?.ERA_3_RPC_URL);
+const provider = new ethers.providers.WebSocketProvider(secrets?.ERA_3_RPC_URL);
 const ABI = [
   {
     anonymous: false,
