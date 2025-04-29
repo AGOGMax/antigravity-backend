@@ -17,6 +17,16 @@ const captureErrorWithContext = (error, contextMessage) => {
   });
 };
 
+process.on("unhandledRejection", (reason) => {
+  console.error("Unhandled Rejection:", reason);
+  captureErrorWithContext(reason, "Unhandled Rejection");
+});
+
+process.on("uncaughtException", (err) => {
+  console.error("Uncaught Exception:", err);
+  captureErrorWithContext(err, "Uncaught Exception");
+});
+
 const lambda = new AWS.Lambda({ region: "us-east-1" });
 const provider = new ethers.WebSocketProvider(secrets?.ERA_3_RPC_URL);
 const ABI = [
@@ -68,4 +78,37 @@ contract.on("Randomise", async (roundId, numEntrants) => {
     console.error("❌ Error calling Lambda:", err);
     captureErrorWithContext(err, "PMW Listener: Lambda Invoke Error");
   }
+});
+
+ws.on("open", () => {
+  console.log("🔗 WebSocket connection established");
+
+  setInterval(() => {
+    if (ws.readyState === 1) {
+      try {
+        ws.ping?.();
+        console.log("📡 Sent ping to keep WebSocket alive");
+      } catch (err) {
+        console.error("Ping error:", err);
+        captureErrorWithContext(err, "WebSocket Ping Error");
+      }
+    }
+  }, 5 * 60 * 1000);
+});
+
+ws.on("close", (code, reason) => {
+  console.error(
+    `❌ WebSocket closed (code: ${code}, reason: ${reason}). Exiting...`
+  );
+  captureErrorWithContext(
+    new Error(`WebSocket closed: ${code} ${reason}`),
+    "WebSocket Close"
+  );
+  process.exit(1);
+});
+
+ws.on("error", (err) => {
+  console.error("❌ WebSocket error:", err);
+  captureErrorWithContext(err, "WebSocket Error");
+  process.exit(1);
 });
