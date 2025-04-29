@@ -80,6 +80,8 @@ contract.on("Randomise", async (roundId, numEntrants) => {
   }
 });
 
+const ws = provider._websocket;
+
 ws.on("open", () => {
   console.log("🔗 WebSocket connection established");
 
