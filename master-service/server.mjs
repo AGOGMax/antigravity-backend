@@ -649,6 +649,21 @@ app.get("/api/evil-bonus/:journeyId", async (req, res) => {
   }
 });
 
+app.get("/api/calldata", async (req, res) => {
+  try {
+    const redisKey = `${environment}:api:piteasquote`;
+    const calldata = await redisClient.get(redisKey);
+    res.json({ calldata });
+  } catch (error) {
+    console.error(`Master Service: Piteas Calldata Fetch Error: ${error}`);
+    captureErrorWithContext(
+      error,
+      "Master Service: Piteas Calldata Fetch Error"
+    );
+    res.status(500).send("Internal Server Error");
+  }
+});
+
 Sentry.setupExpressErrorHandler(app);
 
 await mongoose.connect(secrets?.MONGODB_CONNECTION_STRING);

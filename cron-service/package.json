@@ -13,7 +13,8 @@
     "lodash": "^4.17.21",
     "mongoose": "^8.4.3",
     "node-cron": "^3.0.3",
-    "node-schedule": "^2.1.1"
+    "node-schedule": "^2.1.1",
+    "redis": "^5.0.0"
   },
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
