@@ -13,6 +13,7 @@ import {
 } from "./crons/era-3-cron.mjs";
 import { invokeEra1Keeper } from "./crons/era-1-keeper.mjs";
 import { invokeEra2Keeper } from "./crons/era-2-keeper.mjs";
+import { fetchPiteasCalldata } from "./crons/pmw-cron.mjs";
 import { fetchSecretsList } from "../secrets-manager/secrets-manager.mjs";
 import schedule from "node-schedule";
 import * as Sentry from "@sentry/node";
@@ -130,6 +131,15 @@ cron.schedule("*/2 * * * *", () => {
     saveMissedLotteryResults();
   } catch (e) {
     captureErrorWithContext(e, "Error while saving missed lottery results.");
+  }
+});
+
+cron.schedule("*/10 * * * * *", () => {
+  console.log("Cron Ran for fetching piteas quote data.");
+  try {
+    fetchPiteasCalldata();
+  } catch (e) {
+    captureErrorWithContext(e, "Error while fetching piteas quote data.");
   }
 });
 
