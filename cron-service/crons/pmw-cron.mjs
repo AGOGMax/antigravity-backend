@@ -69,7 +69,8 @@ export const fetchPiteasCalldata = async () => {
   const contractAddress = secrets?.PMW_CONTRACT_ADDRESS;
   const { maxEntries, ticketPrice } = await readContract();
   const swapAmount = (maxEntries * ticketPrice * 80n) / 100n;
-  const piteasURL = `https://sdk.piteas.io/quote?tokenInAddress=0xefD766cCb38EaF1dfd701853BFCe31359239F305&tokenOutAddress=0x1578F4De7fCb3Ac9e8925ac690228EDcA3BBc7c5&amount=${swapAmount}&allowedSlippage=1.50&account=${contractAddress}`;
+  const piteasURL = `https://sdk.piteas.io/quote?tokenInAddress=PLS&tokenOutAddress=0x1578F4De7fCb3Ac9e8925ac690228EDcA3BBc7c5&amount=${swapAmount}&allowedSlippage=1.50&account=${contractAddress}`;
+  console.log("Quote URL: ", piteasURL);
   try {
     response = await axios.get(piteasURL);
     if (response.status === 200) {
