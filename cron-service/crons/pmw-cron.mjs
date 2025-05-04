@@ -1,5 +1,6 @@
 import axios from "axios";
 import { createClient } from "redis";
+import { ethers } from "ethers";
 import { fetchSecretsList } from "../../secrets-manager/secrets-manager.mjs";
 import { captureErrorWithContext } from "../start-crons.mjs";
 
@@ -18,11 +19,59 @@ const redisClient = createClient({
 redisClient.on("error", (err) => console.log("Redis Client Error ❌", err));
 await redisClient.connect();
 
+const provider = new ethers.JsonRpcProvider(secrets?.ERA_3_RPC_URL);
+const CONTRACT_ABI = [
+  {
+    inputs: [],
+    name: "TICKET_PRICE",
+    outputs: [
+      {
+        internalType: "uint256",
+        name: "",
+        type: "uint256",
+      },
+    ],
+    stateMutability: "view",
+    type: "function",
+  },
+  {
+    inputs: [],
+    name: "MAX_ENTRIES",
+    outputs: [
+      {
+        internalType: "uint256",
+        name: "",
+        type: "uint256",
+      },
+    ],
+    stateMutability: "view",
+    type: "function",
+  },
+];
+
+const readContract = async () => {
+  const contract = new ethers.Contract(
+    secrets?.PMW_CONTRACT_ADDRESS,
+    CONTRACT_ABI,
+    provider
+  );
+
+  const maxEntries = await contract.MAX_ENTRIES();
+  const ticketPrice = await contract.TICKET_PRICE();
+
+  return { maxEntries, ticketPrice };
+};
+
 export const fetchPiteasCalldata = async () => {
   let response = {};
   const redisKey = `${environment}:api:piteasquote`;
+
+  const contractAddress = secrets?.PMW_CONTRACT_ADDRESS;
+  const { maxEntries, ticketPrice } = await readContract();
+  const swapAmount = (maxEntries * ticketPrice * 80n) / 100n;
+  const piteasURL = `https://sdk.piteas.io/quote?tokenInAddress=0xefD766cCb38EaF1dfd701853BFCe31359239F305&tokenOutAddress=0x1578F4De7fCb3Ac9e8925ac690228EDcA3BBc7c5&amount=${swapAmount}&allowedSlippage=1.50&account=${contractAddress}`;
   try {
-    response = await axios.get(secrets?.PITEAS_QUOTE_URL);
+    response = await axios.get(piteasURL);
     if (response.status === 200) {
       const callData = response.data?.methodParameters?.calldata || "0x";
       await redisClient.set(redisKey, callData);
