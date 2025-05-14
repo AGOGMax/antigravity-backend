@@ -20,13 +20,16 @@ import * as Sentry from "@sentry/node";
 import { nodeProfilingIntegration } from "@sentry/profiling-node";
 
 const secrets = await fetchSecretsList();
+const environment = process.env.ENV || "TEST";
 await mongoose.connect(secrets?.MONGODB_CONNECTION_STRING);
 
 Sentry.init({
   dsn: secrets?.SENTRY_DSN_URL,
   integrations: [nodeProfilingIntegration()],
-  tracesSampleRate: 1.0,
-  profilesSampleRate: 1.0,
+  tracesSampleRate: 0.3,
+  profilesSampleRate: 0.3,
+  enabled: environment === "PRODUCTION",
+  environment: environment,
 });
 
 const captureErrorWithContext = (error, contextMessage) => {

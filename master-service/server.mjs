@@ -73,8 +73,10 @@ await redisClient.connect();
 Sentry.init({
   dsn: secrets?.SENTRY_DSN_URL,
   integrations: [nodeProfilingIntegration()],
-  tracesSampleRate: 1.0,
-  profilesSampleRate: 1.0,
+  tracesSampleRate: 0.3,
+  profilesSampleRate: 0.3,
+  enabled: environment === "PRODUCTION",
+  environment: environment,
 });
 
 const captureErrorWithContext = (error, contextMessage) => {

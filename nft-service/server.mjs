@@ -4,13 +4,16 @@ import { fetchSecretsList } from "../secrets-manager/secrets-manager.mjs";
 import * as Sentry from "@sentry/node";
 
 const secrets = await fetchSecretsList();
+const environment = process.env.ENV || "TEST";
 
 const app = express();
 app.use(express.json());
 
 Sentry.init({
   dsn: secrets?.SENTRY_DSN_URL,
-  tracesSampleRate: 1.0,
+  tracesSampleRate: 0.3,
+  enabled: environment === "PRODUCTION",
+  environment: environment,
 });
 
 const captureErrorWithContext = (error, contextMessage) => {

@@ -7,6 +7,8 @@ const secrets = await fetchSecretsList();
 const EXPECTED_PONG_BACK = 15000;
 const KEEP_ALIVE_CHECK_INTERVAL = 7500;
 
+const environment = process.env.ENV || "TEST";
+
 const ABI = [
   {
     anonymous: false,
@@ -31,7 +33,9 @@ const ABI = [
 
 Sentry.init({
   dsn: secrets?.SENTRY_DSN_URL,
-  tracesSampleRate: 1.0,
+  tracesSampleRate: 0.3,
+  enabled: environment === "PRODUCTION",
+  environment: environment,
 });
 
 const captureErrorWithContext = (error, contextMessage) => {
