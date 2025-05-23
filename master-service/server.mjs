@@ -1,5 +1,7 @@
 import express from "express";
 import mongoose from "mongoose";
+import { isAddress } from "ethers";
+import isEmpty from "lodash/isEmpty.js";
 import { createClient } from "redis";
 import {
   fetchLeaderboard,
@@ -670,6 +672,11 @@ app.get("/api/calldata", async (req, res) => {
 app.get("/api/fuel-cells/summary", async (req, res) => {
   try {
     const { walletAddress } = req.query;
+    if (!isEmpty(walletAddress) && !isAddress(walletAddress)) {
+      return res.status(400).json({
+        error: "Invalid wallet address.",
+      });
+    }
     const response = await fetchFuelCellsSummary(walletAddress, redisClient);
     res.json(response);
   } catch (error) {
