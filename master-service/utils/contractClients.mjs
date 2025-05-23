@@ -1,8 +1,16 @@
 import { ethers } from "ethers";
-import darkPayoutCalculatorAbi from "../abi/darkPayoutCalculatorAbi.json" assert { type: "json" };
-import darkAbi from "../abi/darkAbi.json" assert { type: "json" };
-import journeyPhaseManagerAbi from "../abi/journeyPhaseManagerAbi.json" assert { type: "json" };
+import { readFileSync } from "fs";
 import { fetchSecretsList } from "../../secrets-manager/secrets-manager.mjs";
+
+const darkPayoutCalculatorAbi = JSON.parse(
+  readFileSync(new URL("../abi/darkPayoutCalculatorAbi.json", import.meta.url))
+);
+const darkAbi = JSON.parse(
+  readFileSync(new URL("../abi/darkAbi.json", import.meta.url))
+);
+const journeyPhaseManagerAbi = JSON.parse(
+  readFileSync(new URL("../abi/journeyPhaseManagerAbi.json", import.meta.url))
+);
 
 const secrets = await fetchSecretsList();
 

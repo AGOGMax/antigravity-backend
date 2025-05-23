@@ -60,9 +60,11 @@ const getActiveNftsInRangeForUser = async (start, end, walletAddress) => {
 
 const getUserFuelCellCount = async (journeyId, walletAddress, redisClient) => {
   const cacheKey = `${environment}:fuel-cell-summary:user-fuel-cell-count:${journeyId}:${walletAddress}`;
-  const cachedValue = await redisClient.get(cacheKey);
-  if (cachedValue) {
-    return Number(cachedValue);
+  if (redisClient) {
+    const cachedValue = await redisClient.get(cacheKey);
+    if (cachedValue) {
+      return Number(cachedValue);
+    }
   }
   const { start, end } = await getJourneyTokenRange(journeyId);
   const rangeSize = BigInt(1000);
@@ -76,9 +78,11 @@ const getUserFuelCellCount = async (journeyId, walletAddress, redisClient) => {
 
   const activeNFTs = await Promise.all(rangePromises);
   const total = activeNFTs.reduce((sum, current) => sum + current, BigInt(0));
-  await redisClient.set(cacheKey, total.toString(), {
-    EX: 60 * 60, // 1 hour
-  });
+  if (redisClient) {
+    await redisClient.set(cacheKey, total.toString(), {
+      EX: 60 * 60, // 1 hour
+    });
+  }
   return Number(total);
 };
 
