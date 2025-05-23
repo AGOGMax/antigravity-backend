@@ -46,6 +46,7 @@ import {
   fetchUserFuelCellsMappingWithTotalYield,
 } from "./utils/yield.mjs";
 import { fuelCellMetadataModel } from "./models/models.mjs";
+import { fetchFuelCellsSummary } from "./utils/fuelCells.mjs";
 
 const secrets = await fetchSecretsList();
 
@@ -663,6 +664,20 @@ app.get("/api/calldata", async (req, res) => {
       "Master Service: Piteas Calldata Fetch Error"
     );
     res.status(500).send("Internal Server Error");
+  }
+});
+
+app.get("/api/fuel-cells/summary", async (req, res) => {
+  try {
+    const { walletAddress } = req.query;
+    const response = await fetchFuelCellsSummary(walletAddress, redisClient);
+    res.json(response);
+  } catch (error) {
+    console.error(`Master Service: Fuel Cells Summary Fetch Error: ${error}`);
+    captureErrorWithContext(
+      error,
+      "Master Service: Fuel Cells Summary Fetch Error"
+    );
   }
 });
 
