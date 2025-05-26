@@ -263,7 +263,9 @@ const fetchFuelCellsSummary = async (walletAddress, redisClient) => {
 
     const payoutPercentage = getPayoutPercentage(index + 1); //Calculate payout percentage based on journey ID
     const journeyPayoutByTreasuryBalance =
-      (treasuryBalance * payoutPercentage * 0.01) / totalFuelCells; //Calculate payout by treasury balance
+      totalFuelCells === 0
+        ? 0
+        : (treasuryBalance * payoutPercentage * 0.01) / totalFuelCells; //Calculate payout by tre balanceasury
     const projectedDark = darkAmount + journeyPayoutByTreasuryBalance; //Calculate projected dark amount by adding dark amount and treasury balance payout
 
     if (userFuelCells !== undefined) {
