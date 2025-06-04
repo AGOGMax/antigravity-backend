@@ -6,8 +6,11 @@ import axios from "axios";
 
 const secrets = await fetchSecretsList();
 
-const getRewardMultiplier = async (walletAddress) => {
+const getRewardMultiplier = async (walletAddress, currentJourneyId) => {
   let rewardMultiplier = 1;
+  if (currentJourneyId >= 5) {
+    return rewardMultiplier; // No reward multiplier for journeys 5 and above
+  }
   const era1Contributors = await fetchEra1ContributorsFromS3();
   const era2ContributorsQuery = await contributionsModel
     .aggregate([
@@ -69,10 +72,13 @@ export const fetchEra3TimestampsAndMultipliers = async (walletAddress) => {
 
   const timestamps = response?.data?.data?.journeyPhaseManagers?.items?.[0];
 
-  const multiplier = getEra3Multiplier(
-    parseInt(timestamps?.currentJourneyId, 10)
+  const currentJourneyId = parseInt(timestamps?.currentJourneyId, 10);
+
+  const multiplier = getEra3Multiplier(currentJourneyId);
+  const rewardMultiplier = await getRewardMultiplier(
+    walletAddress,
+    currentJourneyId
   );
-  const rewardMultiplier = await getRewardMultiplier(walletAddress);
 
   return {
     currentJourney: timestamps?.currentJourneyId,

@@ -191,7 +191,8 @@ const getEra3Multiplier = (currentJourney) => {
   if (currentJourney === 1) return 33;
   else if (currentJourney === 2) return 22;
   else if (currentJourney === 3) return 11;
-  else return 1;
+  else if (currentJourney === 4) return 11;
+  else return 222;
 };
 
 const generateEra3Points = async (contributions, era2Contributors) => {
@@ -201,20 +202,23 @@ const generateEra3Points = async (contributions, era2Contributors) => {
   let rewardMultiplier = 1;
   contributions.forEach((contribution) => {
     const multiplier = getEra3Multiplier(contribution?.journeyId);
-    if (
-      era1ContributionUsers.includes(
-        contribution.walletAddress?.toLowerCase()
-      ) &&
-      era2Contributors.includes(contribution.walletAddress?.toLowerCase())
-    ) {
-      rewardMultiplier = secrets?.ERA_3_REWARD_MULTIPLIER_PREVIOUS_BOTH || 4;
-    } else if (
-      era1ContributionUsers.includes(
-        contribution.walletAddress?.toLowerCase()
-      ) ||
-      era2Contributors.includes(contribution.walletAddress?.toLowerCase())
-    ) {
-      rewardMultiplier = secrets?.ERA_3_REWARD_MULTIPLIER_PREVIOUS_ONE || 2;
+    if (contribution?.journeyId < 5) {
+      // From journey 5, the multiplier is always 222, and no reward multiplier is applied
+      if (
+        era1ContributionUsers.includes(
+          contribution.walletAddress?.toLowerCase()
+        ) &&
+        era2Contributors.includes(contribution.walletAddress?.toLowerCase())
+      ) {
+        rewardMultiplier = secrets?.ERA_3_REWARD_MULTIPLIER_PREVIOUS_BOTH || 4;
+      } else if (
+        era1ContributionUsers.includes(
+          contribution.walletAddress?.toLowerCase()
+        ) ||
+        era2Contributors.includes(contribution.walletAddress?.toLowerCase())
+      ) {
+        rewardMultiplier = secrets?.ERA_3_REWARD_MULTIPLIER_PREVIOUS_ONE || 2;
+      }
     }
     pointsList.push({
       era: 3,
