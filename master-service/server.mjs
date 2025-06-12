@@ -94,8 +94,18 @@ app.use(cors(corsOptions));
 
 app.post("/api/leaderboard", async (req, res) => {
   try {
-    const { walletAddress } = req.body;
-    const leaderboard = await fetchLeaderboard(walletAddress?.toLowerCase());
+    const { walletAddress = "" } = req.body;
+    const lowerCaseWalletAddress = walletAddress?.toLowerCase();
+
+    const exclusionList = (
+      JSON.parse(secrets?.FUEL_CELL_EXCLUSION_LIST) || []
+    ).map((address) => address.toLowerCase());
+
+    const leaderboard = await fetchLeaderboard(
+      lowerCaseWalletAddress,
+      exclusionList
+    );
+
     res.json(leaderboard);
   } catch (error) {
     console.error(`Master Service: Leaderboard Error: ${error}`);

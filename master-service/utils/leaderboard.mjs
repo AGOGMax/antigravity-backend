@@ -2,8 +2,17 @@ import { pointsModel } from "../models/models.mjs";
 import { getBadge } from "../../helpers/helper.mjs";
 import isEmpty from "lodash/isEmpty.js";
 
-const fetchAllTimeLeaderboard = async (currentUserWalletAddress, limit) => {
+const fetchAllTimeLeaderboard = async (
+  currentUserWalletAddress,
+  limit,
+  exclusionList
+) => {
   const users = await pointsModel.aggregate([
+    {
+      $match: {
+        walletAddress: { $nin: exclusionList },
+      },
+    },
     {
       $group: {
         _id: "$walletAddress",
@@ -38,8 +47,8 @@ const fetchAllTimeLeaderboard = async (currentUserWalletAddress, limit) => {
 
   const currentUserWithRank = users.find(
     (item) =>
-      item.walletAddress.toLowerCase() ===
-      currentUserWalletAddress.toLowerCase()
+      item.walletAddress?.toLowerCase() ===
+      currentUserWalletAddress?.toLowerCase()
   );
 
   if (currentUserWithRank?.rank <= limit || isEmpty(currentUserWithRank)) {
@@ -94,8 +103,8 @@ const fetchEraWiseLeaderboard = async (era, currentUserWalletAddress) => {
 
   const currentUserWithRank = users.find(
     (item) =>
-      item.walletAddress.toLowerCase() ===
-      currentUserWalletAddress.toLowerCase()
+      item.walletAddress?.toLowerCase() ===
+      currentUserWalletAddress?.toLowerCase()
   );
 
   if (currentUserWithRank?.rank <= 10 || isEmpty(currentUserWithRank)) {
@@ -123,48 +132,27 @@ const transformLeaderboard = (leaderboard, currentUserWalletAddress) => {
           points: entry.totalPoints,
           wallet: entry.walletAddress,
           badge: getBadge(entry.totalPoints),
-          ...(entry.walletAddress.toLowerCase() ===
-            currentUserWalletAddress.toLowerCase() && { special: true }),
+          ...(entry.walletAddress?.toLowerCase() ===
+            currentUserWalletAddress?.toLowerCase() && { special: true }),
         }
       : null
   );
 };
 
-const fetchLeaderboard = async (currentUserWalletAddress) => {
-  const [
-    allTimeLeaderboardData,
-    era1LeaderboardData,
-    era2LeaderboardData,
-    era3LeaderboardData,
-  ] = await Promise.all([
-    fetchAllTimeLeaderboard(currentUserWalletAddress, 10),
-    fetchEraWiseLeaderboard(1, currentUserWalletAddress),
-    fetchEraWiseLeaderboard(2, currentUserWalletAddress),
-    fetchEraWiseLeaderboard(3, currentUserWalletAddress),
+const fetchLeaderboard = async (currentUserWalletAddress, exclusionList) => {
+  const [allTimeLeaderboardData, fullTimeLeaderboardData] = await Promise.all([
+    fetchAllTimeLeaderboard(currentUserWalletAddress, 10, exclusionList),
+    fetchAllTimeLeaderboard(currentUserWalletAddress, "", exclusionList),
   ]);
 
-  const allTimeLeaderboard = transformLeaderboard(
-    allTimeLeaderboardData,
-    currentUserWalletAddress
-  );
-  const era1Leaderboard = transformLeaderboard(
-    era1LeaderboardData,
-    currentUserWalletAddress
-  );
-  const era2Leaderboard = transformLeaderboard(
-    era2LeaderboardData,
-    currentUserWalletAddress
-  );
-  const era3Leaderboard = transformLeaderboard(
-    era3LeaderboardData,
-    currentUserWalletAddress
-  );
+  const [allTimeLeaderboard, fullTimeLeaderboard] = await Promise.all([
+    transformLeaderboard(allTimeLeaderboardData, currentUserWalletAddress),
+    transformLeaderboard(fullTimeLeaderboardData, currentUserWalletAddress),
+  ]);
 
   return {
-    allTimeLeaderboard: allTimeLeaderboard,
-    era1Leaderboard: era1Leaderboard,
-    era2Leaderboard: era2Leaderboard,
-    era3Leaderboard: era3Leaderboard,
+    allTimeLeaderboard,
+    fullTimeLeaderboard,
   };
 };
 
