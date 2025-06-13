@@ -5,7 +5,7 @@ import isEmpty from "lodash/isEmpty.js";
 const fetchAllTimeLeaderboard = async (
   currentUserWalletAddress,
   limit,
-  exclusionList
+  exclusionList = []
 ) => {
   const users = await pointsModel.aggregate([
     {
