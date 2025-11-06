@@ -47,7 +47,7 @@ const captureErrorWithContext = (error, contextMessage) => {
 
 const startConnection = () => {
   const provider = new ethers.providers.WebSocketProvider(
-    "wss://rpc-pulsechain.g4mm4.io"
+    "wss://pulsechain-rpc.publicnode.com"
   );
 
   const contract = new ethers.Contract(
