@@ -1,5 +1,5 @@
 # Use the official Node.js image from the Docker Hub
-FROM node:lts-alpine
+FROM node:20-alpine
 
 # Set the working directory
 WORKDIR /usr/src/master-service/
