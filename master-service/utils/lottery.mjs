@@ -154,6 +154,7 @@ const fetchEvilFunctionalityTokens = async (walletAddress, isPruned) => {
         tokenId: { $nin: blockedTokens },
         walletAddress: walletAddress,
         isPruned: isPruned,
+        journeyId: { $ne: 7 }
       },
     },
     {
